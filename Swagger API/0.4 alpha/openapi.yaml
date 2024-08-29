@@ -1,0 +1,391 @@
+openapi: 3.0.3
+info:
+  title: MEPhI Service for students
+  description: |-
+    This is a swagger description to MEPhi student's service.
+  version: 0.4 alpha
+  # servers:
+  # - url: https://petstore3.swagger.io/api/v3
+tags:
+  - name: market
+    description: Market API
+  - name: announcement
+    description: Announcement's system API
+  - name: community
+    description: Community system API. Create and develop your own community.
+  - name: user
+    description: User's interaction with services. Includes user profile, friends and other.
+paths:
+  /market:
+    get:
+      tags:
+        - market
+      summary: Get all adverts from market
+      description: Returns advert's list to user
+      operationId: getAdverts
+      parameters:
+        - name: session_id
+          in: cookie
+          description: User's session ID
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Advert'
+        '400':
+          description: Invalid input
+        '401':
+          description: Auth is required
+        '500':
+          description: Internal server error
+  /market/{advert_id}:
+    get:
+      tags:
+        - market
+      summary: Find advert by ID
+      description: Returns a single advert
+      operationId: getAdvertById
+      parameters:
+        - name: advert_id
+          in: path
+          description: ID of advert to return
+          required: true
+          schema:
+            type: string
+        - name: session_id
+          in: cookie
+          description: User's session ID
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Advert'
+        '400':
+          description: Invalid ID supplied
+        '404':
+          description: Can't find advert with this ID
+        '500':
+          description: Internal server error
+  /market/{advert_id}/edit:
+    post:
+      tags:
+        - market
+      summary: Edit existing advert
+      description: Edit your own advert
+      operationId: editAdvertById
+      parameters:
+        - name: advert_id
+          in: path
+          description: ID of advert to return
+          required: true
+          schema:
+            type: string
+        - name: session_id
+          in: cookie
+          description: User's session ID
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Advert'
+        '400':
+          description: Invalid ID supplied
+        '401':
+          description: Auth is required
+        '404':
+          description: Can't find advert with this ID
+        '500':
+          description: Internal server error
+    delete:
+      tags:
+        - market
+      summary: Delete advert by ID
+      description: Delete advert that is yours
+      operationId: deleteAdvertById
+      parameters:
+        - name: advert_id
+          in: path
+          description: ID of advert to return
+          required: true
+          schema:
+            type: string
+        - name: session_id
+          in: cookie
+          description: User's session ID
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful operation
+        '400':
+          description: Invalid ID supplied
+        '404':
+          description: Can't find advert with this ID
+        '500':
+          description: Internal server error
+  /market/create:
+    get:
+      tags:
+        - market
+      summary: Get page to create an advert
+      description: Page to create your own advert. Input fields are name, cost, desc
+      operationId: getCreateAdvertPage
+      parameters:
+        - name: session_id
+          in: cookie
+          description: User's session ID
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful operation
+        '401':
+          description: Auth is required
+        '500':
+          description: Internal server error
+    post:
+      tags:
+        - market
+      summary: Create advert
+      description: Create your own advert
+      operationId: createAdvert
+      parameters:
+        - name: session_id
+          in: cookie
+          description: User's session ID
+          required: true
+          schema:
+            type: string
+      requestBody:
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/Advert'
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Advert'
+        '500':
+          description: Internal server error
+  /market/wishlist:
+    get:
+      tags:
+        - market
+      summary: Get wishlist page
+      description: Get all adverts that you liked
+      operationId: getAdvertsFromWishlist
+      parameters:
+        - name: session_id
+          in: cookie
+          description: User's session ID
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Advert'
+        '500':
+          description: Internal server error
+  /market/wishlist/{user_id}:
+    get:
+      tags:
+        - market
+      summary: Get wishlist page of user
+      description: Get all adverts that user with user_id liked.
+      operationId: getAdvertsFromWishlistById
+      parameters:
+        - name: user_id
+          in: path
+          description: ID of wishlist's user
+          required: true
+          schema:
+            type: string
+        - name: session_id
+          in: cookie
+          description: User's session ID
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Advert'
+        '500':
+          description: Internal server error
+  /market/wishlist/add/{advert_id}:
+    post:
+      tags:
+        - market
+      summary: Add advert to wishlist
+      description: Add advert to your wishlist
+      operationId: addAdvertToWishlist
+      parameters:
+        - name: advert_id
+          in: path
+          description: ID of wishlist's user
+          required: true
+          schema:
+            type: string
+        - name: session_id
+          in: cookie
+          description: User's session ID
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful operation
+        '401':
+          description: Auth is required
+        '500':
+          description: Internal server error
+  /market/wishlist/remove/{advert_id}:
+    delete:
+      tags:
+        - market
+      summary: Remove advert from wishlist
+      description: You can remove advert with advert_id from your wishlist
+      operationId: removeAdvertFromWishlist
+      parameters:
+        - name: advert_id
+          in: path
+          description: ID of wishlist's user
+          required: true
+          schema:
+            type: string
+        - name: session_id
+          in: cookie
+          description: User's session ID
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful operation
+        '401':
+          description: Auth is required
+        '500':
+          description: Internal server error
+  /profile/{user_id}:
+    get:
+      tags:
+        - user
+      summary: Get profile's user
+      description: You can visit user's profile
+      operationId: getUserProfile
+      parameters:
+        - name: user_id
+          in: path
+          description: ID of user
+          required: true
+          schema:
+            type: string
+        - name: session_id
+          in: cookie
+          description: User's session ID
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successfull operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/User'
+        '500':
+          description: Internal server error
+components:
+  schemas:
+    Advert:
+      type: object
+      properties:
+        advert_id:
+          type: integer
+          format: int64
+          example: 10
+        user_id:
+          type: integer
+          format: int64
+          example: 2359
+        name:
+          type: string
+          example: New advert name
+        price:
+          type: integer
+          format: int64
+          example: 690
+        createDate:
+          type: string
+          format: date-time
+        editDate:
+          type: string
+          format: date-time
+        successful:
+          type: boolean
+    User:
+      type: object
+      properties:
+        user_id:
+          type: integer
+          format: int64
+          example: 10
+        first_name:
+            type: string
+            example: Ivan
+        second_name:
+          type: string
+          example: Ivanov
+        sex:
+          type: string
+          example: M
+        age:
+          type: integer
+          format: int64
+          example: 19
+        address:
+          type: string
+          example: Moscow, Koshkina street, 11k1
+        registerDate:
+          type: string
+          format: date-time
+        editDate:
+          type: string
+          format: date-time
+        
