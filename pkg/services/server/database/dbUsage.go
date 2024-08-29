@@ -13,7 +13,6 @@ import (
 )
 
 var (
-	redisAddress           = "redis://user:@localhost:6379/0"
 	letterRunes            = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
 	sessionIDKeyLen        = 32
 	ErrorNewSession        = errors.New("error by creating new session")
@@ -35,8 +34,8 @@ type DatabaseORM struct {
 }
 
 // todo: в будущем перенести адрес редиса в .env файл
-func NewRedisConn() *config.RedisDB {
-	redisConn, err := redis.DialURL(redisAddress)
+func NewRedisConn(cfg *config.Config) *config.RedisDB {
+	redisConn, err := redis.DialURL(cfg.Database.RedisURL)
 	if err != nil {
 		log.Fatalf("Redis connection err - %v", err)
 		return nil
@@ -63,7 +62,7 @@ func NewPgxConn(cfg *config.Config) *config.PostgreDB {
 func NewDBUsage(cfg *config.Config) *DatabaseORM {
 	return &DatabaseORM{
 		PgxDB: NewPgxConn(cfg),
-		RdsDB: NewRedisConn(),
+		RdsDB: NewRedisConn(cfg),
 	}
 }
 
