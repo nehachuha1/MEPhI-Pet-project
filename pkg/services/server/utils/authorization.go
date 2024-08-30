@@ -6,7 +6,7 @@ import (
 	"golang.org/x/crypto/argon2"
 )
 
-// todo: Дописать авторизацию по примеру из лекций с алгоритмом Argon2
+// todo: Переписать модуль авторизации (сейчас используется argonpass)
 
 func EncryptPasswordWithSalt(plainPassword string, salt []byte) []byte {
 	hashedPass := argon2.IDKey([]byte(plainPassword), salt, 1, 64*1024, 4, 32)

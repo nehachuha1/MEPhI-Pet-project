@@ -6,7 +6,6 @@ import (
 	"log"
 	"mephiMainProject/pkg/services/server/config"
 	"mephiMainProject/pkg/services/server/database"
-	"sync/atomic"
 )
 
 var (
@@ -16,8 +15,7 @@ var (
 )
 
 type UserRepository struct {
-	currentFreeID atomic.Int64
-	dbORM         *database.DatabaseORM
+	dbORM *database.DatabaseORM
 }
 
 func NewUserRepository(cfg *config.Config) *UserRepository {

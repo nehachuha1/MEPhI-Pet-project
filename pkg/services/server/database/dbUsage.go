@@ -66,39 +66,41 @@ func NewDBUsage(cfg *config.Config) *DatabaseORM {
 	}
 }
 
-func (db *DatabaseORM) GetUserByID(id int) (config.User, error) {
-	item := &config.User{}
-	rows, err := db.PgxDB.DB.Query(
-		"SELECT user_id, first_name, second_name, sex, age, address, register_date, edit_date, login FROM public.users WHERE user_id=$1;", id)
-	if err != nil {
-		log.Printf("PostgreORM.GetUserById error - %v", err)
-		return config.User{}, err
-	}
-	for rows.Next() {
-		err = rows.Scan(&item.UserId, &item.FirstName, &item.SecondName, &item.Sex, &item.Age, &item.Address, &item.RegisterDate, &item.EditDate, &item.Login)
-		if err != nil {
-			return config.User{}, err
-		}
-	}
-	return *item, nil
-}
+// Todo: rewrite methods GetUserByID and GetUserByLogin
 
-func (db *DatabaseORM) GetUserByLogin(login string) (config.User, error) {
-	item := &config.User{}
-	rows, err := db.PgxDB.DB.Query(
-		"SELECT user_id, first_name, second_name, sex, age, address, register_date, edit_date, login FROM public.users WHERE login=$1;", login)
-	if err != nil {
-		log.Printf("PostgreORM.GetUserByLogin error - %v", err)
-		return config.User{}, err
-	}
-	for rows.Next() {
-		err = rows.Scan(&item.UserId, &item.FirstName, &item.SecondName, &item.Sex, &item.Age, &item.Address, &item.RegisterDate, &item.EditDate, &item.Login)
-		if err != nil {
-			return config.User{}, err
-		}
-	}
-	return *item, nil
-}
+//func (db *DatabaseORM) GetUserByID(id int) (config.User, error) {
+//	item := &config.User{}
+//	rows, err := db.PgxDB.DB.Query(
+//		"SELECT first_name, second_name, sex, age, address, register_date, edit_date, login FROM public.users WHERE user_id=$1;", id)
+//	if err != nil {
+//		log.Printf("PostgreORM.GetUserById error - %v", err)
+//		return config.User{}, err
+//	}
+//	for rows.Next() {
+//		err = rows.Scan(&item.UserId, &item.FirstName, &item.SecondName, &item.Sex, &item.Age, &item.Address, &item.RegisterDate, &item.EditDate, &item.Login)
+//		if err != nil {
+//			return config.User{}, err
+//		}
+//	}
+//	return *item, nil
+//}
+
+//func (db *DatabaseORM) GetUserByLogin(login string) (config.User, error) {
+//	item := &config.User{}
+//	rows, err := db.PgxDB.DB.Query(
+//		"SELECT user_id, first_name, second_name, sex, age, address, register_date, edit_date, login FROM public.users WHERE login=$1;", login)
+//	if err != nil {
+//		log.Printf("PostgreORM.GetUserByLogin error - %v", err)
+//		return config.User{}, err
+//	}
+//	for rows.Next() {
+//		err = rows.Scan(&item.UserId, &item.FirstName, &item.SecondName, &item.Sex, &item.Age, &item.Address, &item.RegisterDate, &item.EditDate, &item.Login)
+//		if err != nil {
+//			return config.User{}, err
+//		}
+//	}
+//	return *item, nil
+//}
 
 func (db *DatabaseORM) GetAuthUserData(login string) (*config.UserAuthData, error) {
 	rows, err := db.PgxDB.DB.Query("SELECT login, password FROM public.auth WHERE login=$1;", login)
@@ -147,6 +149,9 @@ func (db *DatabaseORM) RegisterUser(login, plainPassword string) (int, error) {
 		return 0, err
 	}
 	_, err = db.PgxDB.DB.Exec("INSERT INTO public.users(login) VALUES ($1);", currentUsr.Login)
+	if err != nil {
+		return 0, errors.New("error while insert new user to public.users")
+	}
 
 	var lastId int
 	rows, _ = db.PgxDB.DB.Query("SELECT id FROM public.auth WHERE login=$1", currentUsr.Login)
@@ -197,6 +202,63 @@ func (db *DatabaseORM) DeleteSession(in *config.SessionID) error {
 	_, err := redis.Int(db.RdsDB.RedisConnection.Do("DEL", mKey))
 	if err != nil {
 		log.Printf("Redis err | Deleting session err - %v:", err)
+		return err
+	}
+	return nil
+}
+
+// Profile interactions
+// todo: Сделать позиционные аргументы c $
+func (db *DatabaseORM) CreateProfile(in *config.User, username string) error {
+	_, err := db.PgxDB.DB.Exec("INSERT INTO public.users(first_name, second_name, sex, age, address, register_date, edit_date) "+
+		"VALUES ($2, $3, $4, $5, $6, %7, $8); WHERE login=$1;", username, in.FirstName, in.SecondName, in.Sex, in.Age,
+		in.Address, in.RegisterDate, in.EditDate)
+	if err != nil {
+		log.Printf("Creating profile for user %v err - %v", username, err)
+		return err
+	}
+	return nil
+}
+
+func (db *DatabaseORM) GetProfile(username string) (config.User, error) {
+	rows, err := db.PgxDB.DB.Query("SELECT first_name, second_name, sex, age, address, register_date, edit_date, login FROM public.users"+
+		" WHERE login=$1", username)
+	defer rows.Close()
+
+	if err != nil {
+		log.Printf("GetProfile error - %v", err)
+		return config.User{}, err
+	}
+
+	currentProfile := &config.User{}
+
+	for rows.Next() {
+		err = rows.Scan(&currentProfile.FirstName, &currentProfile.SecondName, &currentProfile.Sex, &currentProfile.Age,
+			&currentProfile.Address, &currentProfile.RegisterDate, &currentProfile.EditDate, &currentProfile.Login)
+
+		if err != nil {
+			log.Printf("Reading row in GetProfile err - %v", err)
+			return config.User{}, err
+		}
+	}
+	return *currentProfile, nil
+}
+
+func (db *DatabaseORM) EditProfile(username string, newData *config.User) error {
+	_, err := db.PgxDB.DB.Exec("INSERT INTO public.users(first_name, second_name, sex, age, address, register_date, edit_date) "+
+		"VALUES ($2, $3, $4, $5, $6, %7, $8); WHERE login=$1;", username, newData.FirstName, newData.SecondName,
+		newData.Sex, newData.Age, newData.Address, newData.RegisterDate, newData.EditDate)
+
+	if err != nil {
+		log.Printf("Edit profile for user %v err - %v", username, err)
+		return err
+	}
+	return nil
+}
+
+func (db *DatabaseORM) DeleteProfile(username string) error {
+	_, err := db.PgxDB.DB.Exec("DELETE FROM public.users WHERE login=$1;", username)
+	if err != nil {
 		return err
 	}
 	return nil
