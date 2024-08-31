@@ -8,10 +8,15 @@ import (
 	"net/http"
 )
 
-func GenerateRoutes(uh UserHandler) *mux.Router {
+func GenerateRoutes(uh UserHandler, ph ProfileHandler) *mux.Router {
 	r := mux.NewRouter()
-	r.HandleFunc("/login", uh.Login).Methods("POST")
-	r.HandleFunc("/register", uh.Register).Methods("POST")
+	r.HandleFunc("/api/login", uh.Login).Methods("POST")
+	r.HandleFunc("/api/register", uh.Register).Methods("POST")
+
+	r.HandleFunc("/api/profile/create", ph.CreateProfile).Methods("POST")
+	r.HandleFunc("/api/profile/{USERNAME}", ph.GetProfile).Methods("GET")
+	r.HandleFunc("/api/profile/edit", ph.EditProfile).Methods("POST")
+	r.HandleFunc("/api/profile/delete", ph.DeleteProfile).Methods("POST")
 
 	return r
 }

@@ -8,6 +8,7 @@ import (
 	"mephiMainProject/pkg/services/server/config"
 	"mephiMainProject/pkg/services/server/database"
 	"mephiMainProject/pkg/services/server/handlers"
+	"mephiMainProject/pkg/services/server/profile"
 	"mephiMainProject/pkg/services/server/session"
 	"mephiMainProject/pkg/services/server/user"
 	"net/http"
@@ -21,6 +22,7 @@ func main() {
 	currentCfg := config.NewConfig()
 	dbControl := database.NewDBUsage(currentCfg)
 	userRepo := user.NewUserRepository(currentCfg)
+	profileRepo := profile.NewProfileRepository(currentCfg)
 	sessionManager := session.NewSessionManager(dbControl, currentCfg)
 
 	zapLogger, err := zap.NewProduction()
@@ -41,7 +43,13 @@ func main() {
 		UserRepo: userRepo,
 	}
 
-	addHandlersMux := handlers.GenerateRoutes(userHandler)
+	profileHandler := handlers.ProfileHandler{
+		Logger:      logger,
+		Sessions:    sessionManager,
+		ProfileRepo: profileRepo,
+	}
+
+	addHandlersMux := handlers.GenerateRoutes(userHandler, profileHandler)
 	addProcessing := handlers.AddProcessing(addHandlersMux, sessionManager, logger)
 
 	addr := ":8080"

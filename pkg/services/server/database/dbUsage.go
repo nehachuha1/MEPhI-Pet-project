@@ -208,10 +208,26 @@ func (db *DatabaseORM) DeleteSession(in *config.SessionID) error {
 }
 
 // Profile interactions
-// todo: Сделать позиционные аргументы c $
+
 func (db *DatabaseORM) CreateProfile(in *config.User, username string) error {
-	_, err := db.PgxDB.DB.Exec("INSERT INTO public.users(first_name, second_name, sex, age, address, register_date, edit_date) "+
-		"VALUES ($2, $3, $4, $5, $6, %7, $8); WHERE login=$1;", username, in.FirstName, in.SecondName, in.Sex, in.Age,
+	rows, err := db.PgxDB.DB.Query("SELECT first_name, second_name, sex, age, address, register_date, edit_date, login FROM public.users WHERE login=$1", username)
+	defer rows.Close()
+	if err != nil {
+		return err
+	}
+
+	currentProfile := &config.User{}
+	for rows.Next() {
+		err = rows.Scan(&currentProfile.FirstName, &currentProfile.SecondName, &currentProfile.Sex, &currentProfile.Age,
+			&currentProfile.Address, &currentProfile.RegisterDate, &currentProfile.EditDate, &currentProfile.Login)
+
+		if err == nil {
+			return errors.New("current user exists")
+		}
+	}
+
+	_, err = db.PgxDB.DB.Exec("UPDATE public.users SET first_name=$2, second_name=$3, sex=$4, age=$5, address=$6, register_date=$7, edit_date=$8 WHERE login=$1;",
+		username, in.FirstName, in.SecondName, in.Sex, in.Age,
 		in.Address, in.RegisterDate, in.EditDate)
 	if err != nil {
 		log.Printf("Creating profile for user %v err - %v", username, err)
@@ -221,8 +237,7 @@ func (db *DatabaseORM) CreateProfile(in *config.User, username string) error {
 }
 
 func (db *DatabaseORM) GetProfile(username string) (config.User, error) {
-	rows, err := db.PgxDB.DB.Query("SELECT first_name, second_name, sex, age, address, register_date, edit_date, login FROM public.users"+
-		" WHERE login=$1", username)
+	rows, err := db.PgxDB.DB.Query("SELECT first_name, second_name, sex, age, address, register_date, edit_date, login FROM public.users WHERE login=$1", username)
 	defer rows.Close()
 
 	if err != nil {
@@ -241,13 +256,17 @@ func (db *DatabaseORM) GetProfile(username string) (config.User, error) {
 			return config.User{}, err
 		}
 	}
+	if currentProfile.FirstName == "" {
+		log.Printf("There's no profile to user with this login")
+		return config.User{}, errors.New("empty profile")
+	}
+
 	return *currentProfile, nil
 }
 
 func (db *DatabaseORM) EditProfile(username string, newData *config.User) error {
-	_, err := db.PgxDB.DB.Exec("INSERT INTO public.users(first_name, second_name, sex, age, address, register_date, edit_date) "+
-		"VALUES ($2, $3, $4, $5, $6, %7, $8); WHERE login=$1;", username, newData.FirstName, newData.SecondName,
-		newData.Sex, newData.Age, newData.Address, newData.RegisterDate, newData.EditDate)
+	_, err := db.PgxDB.DB.Exec("UPDATE public.users SET first_name=$2, second_name=$3, sex=$4, age=$5, address=$6, register_date=$7, edit_date=$8 WHERE login=$1;",
+		username, newData.FirstName, newData.SecondName, newData.Sex, newData.Age, newData.Address, newData.RegisterDate, newData.EditDate)
 
 	if err != nil {
 		log.Printf("Edit profile for user %v err - %v", username, err)
@@ -257,7 +276,7 @@ func (db *DatabaseORM) EditProfile(username string, newData *config.User) error 
 }
 
 func (db *DatabaseORM) DeleteProfile(username string) error {
-	_, err := db.PgxDB.DB.Exec("DELETE FROM public.users WHERE login=$1;", username)
+	_, err := db.PgxDB.DB.Exec("UPDATE public.users SET first_name=NULL, second_name=NULL, sex=NULL, age=NULL, address=NULL, register_date=NULL, edit_date=NULL WHERE login=$1;", username)
 	if err != nil {
 		return err
 	}

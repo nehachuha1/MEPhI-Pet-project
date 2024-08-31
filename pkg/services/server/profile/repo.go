@@ -16,8 +16,8 @@ func NewProfileRepository(cfg *config.Config) *ProfileRepository {
 	}
 }
 
-func (repo *ProfileRepository) CreateProfile(data *config.User) error {
-	err := repo.db.CreateProfile(data, data.Login)
+func (repo *ProfileRepository) CreateProfile(data *config.User, username string) error {
+	err := repo.db.CreateProfile(data, username)
 	if err != nil {
 		log.Printf("ProfileRepo.CreateProfile err - %v", err)
 		return err

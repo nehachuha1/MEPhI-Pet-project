@@ -6,7 +6,6 @@ import (
 	"mephiMainProject/pkg/services/server/config"
 	"mephiMainProject/pkg/services/server/database"
 	"net/http"
-	"strings"
 	"time"
 )
 
@@ -41,16 +40,12 @@ func (sm *SessionManager) Check(w http.ResponseWriter, r *http.Request) (*config
 		return nil, ErrorNoAuth
 	}
 	tokenString := tokenWithCookie.Value
-	_, tokenString, ok := strings.Cut(tokenString, "Bearer ")
-	if !ok {
-		return nil, ErrorNoAuth
-	}
 	claims := jwt.MapClaims{}
 	_, err = jwt.ParseWithClaims(tokenString, claims, func(t *jwt.Token) (interface{}, error) {
 		if t.Method != jwt.SigningMethodHS256 {
 			return nil, ErrorNoAuth
 		}
-		return sessionKey, nil
+		return jwtSecretKey, nil
 	})
 	if err != nil {
 		return nil, ErrorNoAuth
