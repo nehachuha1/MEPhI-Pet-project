@@ -2,6 +2,7 @@ package database
 
 import (
 	"database/sql"
+	_ "github.com/jackc/pgx/v5/stdlib"
 	"log"
 	"mephiMainProject/pkg/services/marketplace/config"
 )

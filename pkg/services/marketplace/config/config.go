@@ -10,8 +10,13 @@ type databaseConfig struct {
 	PgxDB       string
 }
 
+type gRPC struct {
+	Port string
+}
+
 type Config struct {
 	Database databaseConfig
+	GRPC     gRPC
 }
 
 func NewConfig() *Config {
@@ -22,6 +27,9 @@ func NewConfig() *Config {
 			PgxAddress:  getEnv("POSTGRES_ADDRESS", "localhost"),
 			PgxPort:     getEnv("POSTGRES_PORT", "5432"),
 			PgxDB:       getEnv("POSTGRES_DB_NAME", ""),
+		},
+		GRPC: gRPC{
+			Port: getEnv("GRPC_PORT", ""),
 		},
 	}
 }
