@@ -1,0 +1,52 @@
+syntax="proto3";
+
+option go_package = "./;product";
+
+package products;
+
+message Product {
+  int64 id = 1;
+  string name = 2;
+  string owner_username = 3;
+  int64 price = 4;
+  string description = 5;
+  string create_date = 6;
+  string edit_date = 7;
+  bool is_active = 8;
+  int64 views = 9;
+  repeated string photo_urls = 10;
+}
+
+message AllProducts {
+  repeated Product products = 1;
+}
+
+message ProductID {
+  string productID = 1;
+}
+
+message Response {
+  int64 code = 1;
+  string message = 2;
+}
+
+message Nothing {
+  bool dummy = 1;
+}
+
+message Session {
+  SessionID sessID = 1;
+  string username = 2;
+}
+
+message SessionID {
+  string ID = 1;
+}
+
+service MarketplaceService {
+  rpc GetAllProducts(Nothing) returns(AllProducts) {}
+  rpc GetProduct(ProductID) returns (Product) {}
+  rpc CreateProduct(Product) returns (Response) {}
+  rpc EditProduct(Product) returns (Response) {}
+  rpc DeleteProduct(ProductID) returns (Response) {}
+}
