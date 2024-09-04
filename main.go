@@ -4,7 +4,10 @@ import (
 	"fmt"
 	"github.com/joho/godotenv"
 	"go.uber.org/zap"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 	"log"
+	"mephiMainProject/pkg/services/marketplace/product"
 	"mephiMainProject/pkg/services/server/config"
 	"mephiMainProject/pkg/services/server/database"
 	"mephiMainProject/pkg/services/server/handlers"
@@ -24,6 +27,16 @@ func main() {
 	userRepo := user.NewUserRepository(currentCfg)
 	profileRepo := profile.NewProfileRepository(currentCfg)
 	sessionManager := session.NewSessionManager(dbControl, currentCfg)
+
+	//	GRPC connection to services
+	grpcConn, err := grpc.NewClient(":"+currentCfg.GrpcPort, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	defer grpcConn.Close()
+
+	if err != nil {
+		log.Fatalf("gRPC starting err - %v", err)
+		return
+	}
+	marketPlaceServ := product.NewMarketplaceServiceClient(grpcConn)
 
 	zapLogger, err := zap.NewProduction()
 	if err != nil {
@@ -49,7 +62,13 @@ func main() {
 		ProfileRepo: profileRepo,
 	}
 
-	addHandlersMux := handlers.GenerateRoutes(userHandler, profileHandler)
+	marketHandler := handlers.MarketplaceHandler{
+		Logger:             logger,
+		Sessions:           sessionManager,
+		MarketPlaceManager: marketPlaceServ,
+	}
+
+	addHandlersMux := handlers.GenerateRoutes(userHandler, profileHandler, marketHandler)
 	addProcessing := handlers.AddProcessing(addHandlersMux, sessionManager, logger)
 
 	addr := ":8080"

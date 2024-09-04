@@ -27,5 +27,5 @@ go.work.sum
 # docker_files
 docker-compose.yml
 
-# .idea
 .idea/
+.gitattributes

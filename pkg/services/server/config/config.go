@@ -19,6 +19,7 @@ type databaseConfig struct {
 type Config struct {
 	Sess     sessionConfig
 	Database databaseConfig
+	GrpcPort string
 }
 
 func NewConfig() *Config {
@@ -35,6 +36,7 @@ func NewConfig() *Config {
 			PgxDB:       getEnv("POSTGRES_DB_NAME", ""),
 			RedisURL:    getEnv("REDIS_URL", ""),
 		},
+		GrpcPort: getEnv("GRPC_PORT", ""),
 	}
 }
 

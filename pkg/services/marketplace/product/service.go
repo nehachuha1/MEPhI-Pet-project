@@ -73,7 +73,6 @@ func (ms *MarketplaceService) GetAllProducts(ctx context.Context, nth *Nothing) 
 
 func (ms *MarketplaceService) CreateProduct(ctx context.Context, p *Product) (*Response, error) {
 	tempVar := config.Product{
-		ID:            p.Id,
 		Name:          p.Name,
 		OwnerUsername: p.OwnerUsername,
 		Price:         p.Price,
