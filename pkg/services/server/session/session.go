@@ -1,8 +1,8 @@
 package session
 
 import (
-	"context"
 	"errors"
+	"github.com/labstack/echo/v4"
 	"mephiMainProject/pkg/services/server/config"
 )
 
@@ -19,14 +19,14 @@ func NewSession(username string) *config.Session {
 	}
 }
 
-func SessionFromContext(ctx context.Context) (*config.Session, error) {
-	sess, ok := ctx.Value(sessionKey).(*config.Session)
+func SessionFromContext(ctx echo.Context) (*config.Session, error) {
+	sess, ok := ctx.Get(sessionKey).(*config.Session)
 	if !ok || sess == nil {
 		return nil, ErrorNoAuth
 	}
 	return sess, nil
 }
 
-func ContextWithSession(ctx context.Context, sess *config.Session) context.Context {
-	return context.WithValue(ctx, sessionKey, sess)
+func ContextWithSession(ctx echo.Context, sess *config.Session) {
+	ctx.Set(sessionKey, sess)
 }

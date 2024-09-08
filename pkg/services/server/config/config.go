@@ -1,6 +1,11 @@
 package config
 
-import "os"
+import (
+	"github.com/labstack/echo/v4"
+	"html/template"
+	"io"
+	"os"
+)
 
 type sessionConfig struct {
 	JwtKey     string
@@ -45,4 +50,14 @@ func getEnv(name string, defaultValue string) string {
 		return value
 	}
 	return defaultValue
+}
+
+func NewTemplates() *Templates {
+	return &Templates{
+		Templates: template.Must(template.ParseGlob("views/*.html")),
+	}
+}
+
+func (t *Templates) Render(w io.Writer, name string, data interface{}, c echo.Context) error {
+	return t.Templates.ExecuteTemplate(w, name, data)
 }

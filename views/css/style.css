@@ -1,0 +1,37 @@
+body {
+    font: Arial, sans-serif;
+}
+
+.header{
+    width: auto;
+    height: 45px;
+    border: 1px solid red;
+    padding: 5px 5px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 200;
+}
+
+.header h1 {
+    text-align: center;
+}
+
+div.input-auth-form {
+    top: 50%;
+    left: 50%;
+    position: absolute;
+    transform: translate(-50%, -50%);
+}
+
+div.form-field {
+    display: table-row;
+}
+
+label,
+input {
+    display: table-cell;
+    margin-bottom: 10px;
+    margin-top: 10px;
+}
+

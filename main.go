@@ -7,14 +7,11 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"log"
-	"mephiMainProject/pkg/services/marketplace/product"
 	"mephiMainProject/pkg/services/server/config"
 	"mephiMainProject/pkg/services/server/database"
 	"mephiMainProject/pkg/services/server/handlers"
-	"mephiMainProject/pkg/services/server/profile"
 	"mephiMainProject/pkg/services/server/session"
 	"mephiMainProject/pkg/services/server/user"
-	"net/http"
 )
 
 func main() {
@@ -25,7 +22,7 @@ func main() {
 	currentCfg := config.NewConfig()
 	dbControl := database.NewDBUsage(currentCfg)
 	userRepo := user.NewUserRepository(currentCfg)
-	profileRepo := profile.NewProfileRepository(currentCfg)
+	//profileRepo := profile.NewProfileRepository(currentCfg)
 	sessionManager := session.NewSessionManager(dbControl, currentCfg)
 
 	//	GRPC connection to services
@@ -36,7 +33,7 @@ func main() {
 		log.Fatalf("gRPC starting err - %v", err)
 		return
 	}
-	marketPlaceServ := product.NewMarketplaceServiceClient(grpcConn)
+	//marketPlaceServ := product.NewMarketplaceServiceClient(grpcConn)
 
 	zapLogger, err := zap.NewProduction()
 	if err != nil {
@@ -56,28 +53,26 @@ func main() {
 		UserRepo: userRepo,
 	}
 
-	profileHandler := handlers.ProfileHandler{
-		Logger:      logger,
-		Sessions:    sessionManager,
-		ProfileRepo: profileRepo,
-	}
-
-	marketHandler := handlers.MarketplaceHandler{
-		Logger:             logger,
-		Sessions:           sessionManager,
-		MarketPlaceManager: marketPlaceServ,
-	}
-
-	addHandlersMux := handlers.GenerateRoutes(userHandler, profileHandler, marketHandler)
-	addProcessing := handlers.AddProcessing(addHandlersMux, sessionManager, logger)
+	//profileHandler := handlers.ProfileHandler{
+	//	Logger:      logger,
+	//	Sessions:    sessionManager,
+	//	ProfileRepo: profileRepo,
+	//}
+	//
+	//marketHandler := handlers.MarketplaceHandler{
+	//	Logger:             logger,
+	//	Sessions:           sessionManager,
+	//	MarketPlaceManager: marketPlaceServ,
+	//}
+	//
+	echoHandler := handlers.GenerateRoutes(currentCfg, sessionManager, userHandler)
+	//addProcessing := handlers.AddProcessing(addHandlersMux, sessionManager, logger)
 
 	addr := ":8080"
 	logger.Infow("starting server",
 		"type", "START",
 		"addr", addr,
 	)
-	err = http.ListenAndServe(addr, addProcessing)
-	if err != nil {
-		fmt.Println(err)
-	}
+
+	echoHandler.Logger.Fatal(echoHandler.Start(addr))
 }

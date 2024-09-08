@@ -2,10 +2,10 @@ package session
 
 import (
 	"github.com/dgrijalva/jwt-go"
+	"github.com/labstack/echo/v4"
 	"log"
 	"mephiMainProject/pkg/services/server/config"
 	"mephiMainProject/pkg/services/server/database"
-	"net/http"
 	"time"
 )
 
@@ -33,8 +33,8 @@ func CreateNewToken(user config.User, sessionId string) (string, error) {
 	return token.SignedString(jwtSecretKey)
 }
 
-func (sm *SessionManager) Check(w http.ResponseWriter, r *http.Request) (*config.Session, error) {
-	tokenWithCookie, err := r.Cookie("session")
+func (sm *SessionManager) Check(c echo.Context) (*config.Session, error) {
+	tokenWithCookie, err := c.Cookie("session")
 	if err != nil {
 		log.Printf("Check error: there's no auth cookie")
 		return nil, ErrorNoAuth
@@ -67,7 +67,7 @@ func (sm *SessionManager) Check(w http.ResponseWriter, r *http.Request) (*config
 	return currentSession, nil
 }
 
-func (sm *SessionManager) Create(w http.ResponseWriter, login string) (*config.Session, error) {
+func (sm *SessionManager) Create(login string) (*config.Session, error) {
 	newSession := NewSession(login)
 	sessionWithID, err := sm.dbORM.CreateSession(newSession)
 	if err != nil {

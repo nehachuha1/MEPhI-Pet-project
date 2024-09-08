@@ -1,9 +1,8 @@
 package handlers
 
 import (
-	"encoding/json"
+	"github.com/labstack/echo/v4"
 	"go.uber.org/zap"
-	"io"
 	"mephiMainProject/pkg/services/server/config"
 	"mephiMainProject/pkg/services/server/session"
 	"mephiMainProject/pkg/services/server/user"
@@ -17,146 +16,127 @@ type UserHandler struct {
 	UserRepo user.UserRepo
 }
 
-func (u *UserHandler) Login(w http.ResponseWriter, r *http.Request) {
-	if r.Header.Get("Content-Type") != "application/json" {
-		jsonError(w, http.StatusBadRequest, "unknown payload")
-	}
+type FormData struct {
+	Values map[string]string
+	Errors map[string]string
+}
 
-	body, err := io.ReadAll(r.Body)
-	defer r.Body.Close()
+func NewFormData() FormData {
+	return FormData{
+		Values: make(map[string]string),
+		Errors: make(map[string]string),
+	}
+}
+
+type Page struct {
+	FormData FormData
+}
+
+func (h *UserHandler) LoginGET(c echo.Context) error {
+	formData := NewFormData()
+	formData.Values["requestType"] = "login"
+	return c.Render(http.StatusOK, "index", formData)
+}
+
+func (h *UserHandler) RegisterGET(c echo.Context) error {
+	formData := NewFormData()
+	formData.Values["requestType"] = "register"
+	return c.Render(http.StatusOK, "index", formData)
+}
+
+func (h *UserHandler) LoginPOST(c echo.Context) error {
+	login := c.FormValue("login")
+	password := c.FormValue("password")
+
+	if login == "" || password == "" {
+		formData := NewFormData()
+		formData.Values["requestType"] = "login"
+		formData.Values["login"] = login
+		formData.Values["password"] = password
+		formData.Errors["error"] = "Login or password is not correct"
+		return c.Render(422, "form", formData)
+	}
+	userAuthData, err := h.UserRepo.Authorize(login, password)
 	if err != nil {
-		jsonError(w, http.StatusBadRequest, "cant read request body")
+		formData := NewFormData()
+		formData.Values["login"] = login
+		formData.Values["requestType"] = "login"
+		formData.Values["password"] = password
+		formData.Errors["error"] = "Invalid login or password"
+		return c.Render(422, "form", formData)
 	}
-	authData := &config.UserAuthData{}
-	err = json.Unmarshal(body, authData)
-
+	newSession, err := h.Sessions.Create(userAuthData.Login)
 	if err != nil {
-		jsonError(w, http.StatusBadRequest, "cant unpack payload")
-		return
+		formData := NewFormData()
+		formData.Values["login"] = login
+		formData.Values["requestType"] = "login"
+		formData.Errors["error"] = err.Error()
+		return c.Render(422, "form", formData)
 	}
 
-	usrAuthData, err := u.UserRepo.Authorize(authData.Login, authData.Password)
-	if err != nil { // формируем ошибку при регистрации
-		authErrResp(w, "username", authData.Login, err)
-		return
-	}
-
-	sess, err := u.Sessions.Create(w, usrAuthData.Login)
-
+	h.Logger.Infof("Successfully created session for username %v", newSession.Username)
+	token, err := session.CreateNewToken(config.User{Login: userAuthData.Login}, newSession.SessID.ID)
 	if err != nil {
-		http.Error(w, `Session isn't create`+err.Error(), http.StatusInternalServerError)
-		return
+		formData := NewFormData()
+		formData.Values["login"] = login
+		formData.Values["requestType"] = "login"
+		formData.Errors["error"] = err.Error()
+		return c.Render(422, "form", formData)
 	}
-	u.Logger.Infof("Successfully created session for username %v", sess.Username)
-	usr := config.User{Login: sess.Username}
-	token, err := session.CreateNewToken(usr, sess.SessID.ID)
-	if err != nil {
-		jsonError(w, http.StatusInternalServerError, err.Error())
-		return
-	}
-	resp, err := json.Marshal(map[string]interface{}{
-		"token":       token,
-		"Status code": http.StatusFound,
-	})
-	newCookie := http.Cookie{
+	c.SetCookie(&http.Cookie{
 		Name:    "session",
 		Value:   token,
 		Expires: time.Now().Add(time.Second * 60 * 60 * 24 * 3),
-	}
-	http.SetCookie(w, &newCookie)
-
-	CheckMarshalError(w, err, resp)
-	u.Logger.Infof("Send token on client for user with username: %v ", sess.Username)
-
+	})
+	h.Logger.Infof("Send token on client for user with username: %v ", newSession.Username)
+	return c.Redirect(http.StatusSeeOther, "/")
 }
 
-func (u *UserHandler) Register(w http.ResponseWriter, r *http.Request) {
-	if r.Header.Get("Content-Type") != "application/json" {
-		jsonError(w, http.StatusBadRequest, "unknown payload")
+// TODO: сделать отправку подзапроса на проверку занятости никнейма
+func (h *UserHandler) RegisterPOST(c echo.Context) error {
+	login := c.FormValue("login")
+	password := c.FormValue("password")
+
+	if login == "" || password == "" {
+		formData := NewFormData()
+		formData.Values["login"] = login
+		formData.Values["requestType"] = "register"
+		formData.Values["password"] = password
+		formData.Errors["error"] = "Try other"
+		return c.Render(422, "form", formData)
+	}
+	_, err := h.UserRepo.Register(login, password)
+	if err != nil {
+		formData := NewFormData()
+		formData.Values["login"] = login
+		formData.Values["requestType"] = "register"
+		formData.Values["password"] = password
+		formData.Errors["error"] = err.Error()
+		return c.Render(422, "form", formData)
+	}
+	newSession, err := h.Sessions.Create(login)
+	if err != nil {
+		formData := NewFormData()
+		formData.Values["login"] = login
+		formData.Values["requestType"] = "register"
+		formData.Errors["error"] = err.Error()
+		return c.Render(422, "form", formData)
 	}
 
-	body, err := io.ReadAll(r.Body)
-	defer r.Body.Close()
+	h.Logger.Infof("Successfully created session for username %v", newSession.Username)
+	token, err := session.CreateNewToken(config.User{Login: login}, newSession.SessID.ID)
 	if err != nil {
-		jsonError(w, http.StatusBadRequest, "cant read request body")
+		formData := NewFormData()
+		formData.Values["login"] = login
+		formData.Values["requestType"] = "register"
+		formData.Errors["error"] = err.Error()
+		return c.Render(422, "form", formData)
 	}
-	authData := &config.UserAuthData{}
-	err = json.Unmarshal(body, authData)
-
-	if err != nil {
-		jsonError(w, http.StatusBadRequest, "cant unpack payload")
-		return
-	}
-
-	_, err = u.UserRepo.Register(authData.Login, authData.Password)
-	if err != nil { // формируем ошибку при регистрации
-		authErrResp(w, "username", authData.Login, err)
-		return
-	}
-	sess, err := u.Sessions.Create(w, authData.Login)
-	if err != nil {
-		http.Error(w, `Session isn't create`+err.Error(), http.StatusInternalServerError)
-		return
-	}
-	u.Logger.Infof("Successfully created session for user with ID %v. Full session: %#v", sess.Username, sess)
-
-	usr := config.User{Login: sess.Username}
-	token, err := session.CreateNewToken(usr, sess.SessID.ID)
-	if err != nil {
-		jsonError(w, http.StatusInternalServerError, err.Error())
-		return
-	}
-	resp, err := json.Marshal(map[string]interface{}{
-		"token":       token,
-		"Status code": http.StatusFound,
-	})
-	newCookie := http.Cookie{
+	c.SetCookie(&http.Cookie{
 		Name:    "session",
 		Value:   token,
 		Expires: time.Now().Add(time.Second * 60 * 60 * 24 * 3),
-	}
-	http.SetCookie(w, &newCookie)
-
-	CheckMarshalError(w, err, resp)
-	u.Logger.Infof("Send token on client for user with username: %v ", sess.Username)
-}
-
-func jsonError(w http.ResponseWriter, status int, msg string) {
-	resp, err := json.Marshal(map[string]interface{}{
-		"status": status,
-		"error":  msg,
 	})
-	CheckMarshalError(w, err, resp)
-}
-
-func CheckMarshalError(w http.ResponseWriter, err error, resp []byte) {
-	if err != nil {
-		http.Error(w, "Marshaling error", http.StatusBadRequest)
-		return
-	}
-	_, err = w.Write(resp)
-	if err != nil {
-		http.Error(w, "Writing response err", http.StatusInternalServerError)
-		return
-	}
-}
-
-func authErrResp(w http.ResponseWriter, param string, value string, err error) {
-	var (
-		resp  []byte
-		error error
-	)
-	w.WriteHeader(http.StatusUnprocessableEntity)
-	errors := make([]map[string]string, 0)
-	errors = append(errors, map[string]string{
-		"location": "body",
-		"param":    param,
-		"value":    value,
-		"msg":      err.Error(),
-	})
-	resp, error = json.Marshal(map[string][]map[string]string{
-		"errors": errors,
-	})
-
-	CheckMarshalError(w, error, resp)
+	h.Logger.Infof("Send token on client for user with username: %v ", newSession.Username)
+	return c.Redirect(http.StatusSeeOther, "/")
 }

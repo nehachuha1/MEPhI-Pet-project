@@ -3,6 +3,7 @@ package config
 import (
 	"database/sql"
 	"github.com/gomodule/redigo/redis"
+	"html/template"
 )
 
 type User struct {
@@ -36,4 +37,8 @@ type PostgreDB struct {
 
 type RedisDB struct {
 	RedisConnection redis.Conn
+}
+
+type Templates struct {
+	Templates *template.Template
 }

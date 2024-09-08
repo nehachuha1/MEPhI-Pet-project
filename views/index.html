@@ -1,0 +1,42 @@
+{{block "index" .}}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="views/css/style.css">
+    <script src="https://unpkg.com/htmx.org@2.0.2" integrity="sha384-Y7hw+L/jvKeWIRRkqWYfPcvVxHzVzn5REgzbawhxAuQGwX1XWe70vji+VSeHOThJ" crossorigin="anonymous"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", (event) => {
+            document.body.addEventListener('htmx:beforeSwap', function (evt) {
+                if (evt.detail.xhr.status === 422) {
+                    evt.detail.shouldSwap = true;
+                    evt.detail.isError = false;
+                }
+            });
+        })
+    </script>
+    <title>Index page</title>
+</head>
+<body>
+    <div class="input-auth-form">
+        {{ template "form" .}}
+    </div>
+</body>
+</html>
+{{ end }}
+
+{{ block "form" . }}
+        <form hx-post="/{{ .Values.requestType }}" hx-swap="outerHTML" hx-push-url="true" class="input-auth-form" minlength="8" >
+                Login: <input
+                {{if .Values.name}}value="{{ .Values.name }}" {{ end }}
+                type="text" name="login" required>
+                Password: <input
+                {{if .Values.password}}value="{{ .Values.password }}" {{ end }}
+                type="password" name="password" required>
+            {{ if .Errors.error }}
+            <div style="color: red">{{ .Errors.error }}</div>
+            {{ end }}
+            <button type="submit">Sign in</button>
+        </form>
+{{ end }}
