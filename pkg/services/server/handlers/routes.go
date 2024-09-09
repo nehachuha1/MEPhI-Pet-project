@@ -3,23 +3,45 @@ package handlers
 import (
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
+	"log"
 	"mephiMainProject/pkg/services/server/config"
 	"mephiMainProject/pkg/services/server/ownMiddleware"
 	"mephiMainProject/pkg/services/server/session"
+	"net/http"
 )
 
-func GenerateRoutes(sm *session.SessionManager, uh UserHandler) *echo.Echo {
+func GenerateRoutes(currentCfg *config.Config, sm *session.SessionManager, uh UserHandler, mh MarketplaceHandler) *echo.Echo {
 	e := echo.New()
 
 	//static connection
 	e.Renderer = config.NewTemplates()
 	e.Static("/views/css", "views/css")
 
+	e.GET("/", func(c echo.Context) error {
+		formData := NewFormData()
+		currentSession, err := session.SessionFromContext(c)
+		if err != nil {
+			log.Printf("MAIN PAGE ERR - %v\n", err)
+			return c.Render(http.StatusOK, "index", formData)
+		}
+		formData.Values["isAuthorized"] = currentSession.Username
+		return c.Render(http.StatusOK, "index", formData)
+	})
+
 	// authorization handlers
 	e.GET("/login", uh.LoginGET)
 	e.GET("/register", uh.RegisterGET)
+	e.GET("/logout", uh.Logout)
 	e.POST("/register", uh.RegisterPOST)
 	e.POST("/login", uh.LoginPOST)
+
+	//marketplace handlers
+	e.GET("/marketplace", mh.GetProducts)
+
+	//not found
+	e.RouteNotFound("/*", func(c echo.Context) error {
+		return c.String(http.StatusOK, "Under construct")
+	})
 
 	// middlewares
 	e.Use(middleware.Logger())

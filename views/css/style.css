@@ -1,20 +1,6 @@
 body {
     font: Arial, sans-serif;
-}
-
-.header{
-    width: auto;
-    height: 45px;
-    border: 1px solid red;
-    padding: 5px 5px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 200;
-}
-
-.header h1 {
-    text-align: center;
+    overflow: hidden; /* scroll чтобы вернуть скролл*/
 }
 
 div.input-auth-form {
@@ -35,3 +21,66 @@ input {
     margin-top: 10px;
 }
 
+div.main-container {
+    border: 4px dashed red;
+}
+
+h1.main-container-head {
+    margin-left: auto;
+    margin-right: auto;
+    width: 150px;
+}
+
+div.main-container-head {
+    background-color: beige;
+    margin-top: -20px;
+}
+
+a.auth {
+    display: flex;
+    justify-content: right;
+    margin-right: 5px;
+}
+
+div.main-container-footer {
+    display: flex;
+    justify-content: center;
+    width: 100vw;
+}
+
+div.menu-endpoint {
+    width: 100%;
+    text-align: center;
+    cursor: pointer;
+}
+
+div.main-container-body {
+    display: flex;
+    flex-direction: row;
+}
+
+div.main-container-menu {
+    width: 150px;
+    background: #e6e7d0;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+}
+
+div.marketplace-table {
+    display: flex;
+    width: auto;
+}
+
+div.marketplace-item {
+    width: 60px;
+    height: 60px;
+    cursor: pointer;
+    /*background-image: url();      TODO: реализовать алгоритм сохранения картинок к айди*/
+}
+
+div.marketplace-item-photo {
+    background-repeat: no-repeat;
+    background-position: -40px 0px;
+    background-size: cover;
+}

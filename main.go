@@ -7,6 +7,7 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"log"
+	"mephiMainProject/pkg/services/marketplace/product"
 	"mephiMainProject/pkg/services/server/config"
 	"mephiMainProject/pkg/services/server/database"
 	"mephiMainProject/pkg/services/server/handlers"
@@ -33,7 +34,7 @@ func main() {
 		log.Fatalf("gRPC starting err - %v", err)
 		return
 	}
-	//marketPlaceServ := product.NewMarketplaceServiceClient(grpcConn)
+	marketPlaceServ := product.NewMarketplaceServiceClient(grpcConn)
 
 	zapLogger, err := zap.NewProduction()
 	if err != nil {
@@ -59,14 +60,12 @@ func main() {
 	//	ProfileRepo: profileRepo,
 	//}
 	//
-	//marketHandler := handlers.MarketplaceHandler{
-	//	Logger:             logger,
-	//	Sessions:           sessionManager,
-	//	MarketPlaceManager: marketPlaceServ,
-	//}
+	marketHandler := handlers.MarketplaceHandler{
+		Logger:             logger,
+		MarketPlaceManager: marketPlaceServ,
+	}
 	//
-	echoHandler := handlers.GenerateRoutes(currentCfg, sessionManager, userHandler)
-	//addProcessing := handlers.AddProcessing(addHandlersMux, sessionManager, logger)
+	echoHandler := handlers.GenerateRoutes(currentCfg, sessionManager, userHandler, marketHandler)
 
 	addr := ":8080"
 	logger.Infow("starting server",

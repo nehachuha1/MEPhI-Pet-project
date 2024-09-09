@@ -36,7 +36,7 @@ type PostgreDB struct {
 }
 
 type RedisDB struct {
-	RedisConnection redis.Conn
+	RedisConnection redis.Pool
 }
 
 type Templates struct {

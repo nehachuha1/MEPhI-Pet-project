@@ -33,18 +33,6 @@ type DatabaseORM struct {
 	RdsDB *config.RedisDB
 }
 
-// todo: в будущем перенести адрес редиса в .env файл
-func NewRedisConn(cfg *config.Config) *config.RedisDB {
-	redisConn, err := redis.DialURL(cfg.Database.RedisURL)
-	if err != nil {
-		log.Fatalf("Redis connection err - %v", err)
-		return nil
-	}
-	return &config.RedisDB{
-		RedisConnection: redisConn,
-	}
-}
-
 func NewPgxConn(cfg *config.Config) *config.PostgreDB {
 	dsn := "postgres://" + cfg.Database.PgxUser + ":" + cfg.Database.PgxPassword + "@"
 	dsn = dsn + cfg.Database.PgxAddress + ":" + cfg.Database.PgxPort + "/"
@@ -62,45 +50,18 @@ func NewPgxConn(cfg *config.Config) *config.PostgreDB {
 func NewDBUsage(cfg *config.Config) *DatabaseORM {
 	return &DatabaseORM{
 		PgxDB: NewPgxConn(cfg),
-		RdsDB: NewRedisConn(cfg),
+		RdsDB: &config.RedisDB{
+			RedisConnection: redis.Pool{
+				Dial: func() (redis.Conn, error) {
+					return redis.DialURL(cfg.Database.RedisURL)
+				},
+				MaxIdle:     8,
+				MaxActive:   0,
+				IdleTimeout: 100,
+			},
+		},
 	}
 }
-
-// Todo: rewrite methods GetUserByID and GetUserByLogin
-
-//func (db *DatabaseORM) GetUserByID(id int) (config.User, error) {
-//	item := &config.User{}
-//	rows, err := db.PgxDB.DB.Query(
-//		"SELECT first_name, second_name, sex, age, address, register_date, edit_date, login FROM public.users WHERE user_id=$1;", id)
-//	if err != nil {
-//		log.Printf("PostgreORM.GetUserById error - %v", err)
-//		return config.User{}, err
-//	}
-//	for rows.Next() {
-//		err = rows.Scan(&item.UserId, &item.FirstName, &item.SecondName, &item.Sex, &item.Age, &item.Address, &item.RegisterDate, &item.EditDate, &item.Login)
-//		if err != nil {
-//			return config.User{}, err
-//		}
-//	}
-//	return *item, nil
-//}
-
-//func (db *DatabaseORM) GetUserByLogin(login string) (config.User, error) {
-//	item := &config.User{}
-//	rows, err := db.PgxDB.DB.Query(
-//		"SELECT user_id, first_name, second_name, sex, age, address, register_date, edit_date, login FROM public.users WHERE login=$1;", login)
-//	if err != nil {
-//		log.Printf("PostgreORM.GetUserByLogin error - %v", err)
-//		return config.User{}, err
-//	}
-//	for rows.Next() {
-//		err = rows.Scan(&item.UserId, &item.FirstName, &item.SecondName, &item.Sex, &item.Age, &item.Address, &item.RegisterDate, &item.EditDate, &item.Login)
-//		if err != nil {
-//			return config.User{}, err
-//		}
-//	}
-//	return *item, nil
-//}
 
 func (db *DatabaseORM) GetAuthUserData(login string) (*config.UserAuthData, error) {
 	rows, err := db.PgxDB.DB.Query("SELECT login, password FROM public.auth WHERE login=$1;", login)
@@ -170,7 +131,8 @@ func (db *DatabaseORM) CreateSession(in *config.Session) (*config.Session, error
 	in.SessID = newSessionID
 	dataSerialized, _ := json.Marshal(in)
 	mKey := "SESSIONS: " + newSessionID.ID
-	result, err := redis.String(db.RdsDB.RedisConnection.Do("SET", mKey, dataSerialized, "EX", 259200))
+	currentConn := db.RdsDB.RedisConnection.Get()
+	result, err := redis.String(currentConn.Do("SET", mKey, dataSerialized, "EX", 259200))
 
 	if err != nil {
 		return nil, ErrorNewSession
@@ -183,7 +145,8 @@ func (db *DatabaseORM) CreateSession(in *config.Session) (*config.Session, error
 
 func (db *DatabaseORM) CheckSession(in *config.SessionID) (*config.Session, error) {
 	mKey := "SESSIONS: " + in.ID
-	data, err := redis.Bytes(db.RdsDB.RedisConnection.Do("GET", mKey))
+	currentConn := db.RdsDB.RedisConnection.Get()
+	data, err := redis.Bytes(currentConn.Do("GET", mKey))
 	if err != nil {
 		log.Printf("redisORM error - %v", err)
 		return &config.Session{}, err
@@ -199,7 +162,8 @@ func (db *DatabaseORM) CheckSession(in *config.SessionID) (*config.Session, erro
 
 func (db *DatabaseORM) DeleteSession(in *config.SessionID) error {
 	mKey := "SESSIONS:" + in.ID
-	_, err := redis.Int(db.RdsDB.RedisConnection.Do("DEL", mKey))
+	currentConn := db.RdsDB.RedisConnection.Get()
+	_, err := redis.Int(currentConn.Do("DEL", mKey))
 	if err != nil {
 		log.Printf("Redis err | Deleting session err - %v:", err)
 		return err

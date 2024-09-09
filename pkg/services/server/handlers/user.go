@@ -3,6 +3,7 @@ package handlers
 import (
 	"github.com/labstack/echo/v4"
 	"go.uber.org/zap"
+	"mephiMainProject/pkg/services/marketplace/product"
 	"mephiMainProject/pkg/services/server/config"
 	"mephiMainProject/pkg/services/server/session"
 	"mephiMainProject/pkg/services/server/user"
@@ -17,8 +18,9 @@ type UserHandler struct {
 }
 
 type FormData struct {
-	Values map[string]string
-	Errors map[string]string
+	Values   map[string]string
+	Errors   map[string]string
+	Products []*product.Product
 }
 
 func NewFormData() FormData {
@@ -138,5 +140,15 @@ func (h *UserHandler) RegisterPOST(c echo.Context) error {
 		Expires: time.Now().Add(time.Second * 60 * 60 * 24 * 3),
 	})
 	h.Logger.Infof("Send token on client for user with username: %v ", newSession.Username)
+	return c.Redirect(http.StatusSeeOther, "/")
+}
+
+func (h *UserHandler) Logout(c echo.Context) error {
+	c.SetCookie(&http.Cookie{
+		Name:    "session",
+		Value:   "expired",
+		Expires: time.Now().Add(-1 * time.Hour * 24),
+	},
+	)
 	return c.Redirect(http.StatusSeeOther, "/")
 }
