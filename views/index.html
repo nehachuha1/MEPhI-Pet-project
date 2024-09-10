@@ -61,7 +61,7 @@
         <div class="main-container-body">
             <div class="main-container-menu">
                     {{ if .Values.username }}
-                    <div class="menu-endpoint" hx-get="/profile/{{ .Values.username }}" hx-target=".main-container-interaction" hx-swap="innerHTML" hx-push-url="false"> <!--replace push url to true-->
+                    <div class="menu-endpoint" hx-get="/profile/{{ .Values.username }}" hx-target=".main-container-interaction" hx-swap="innerHTML" hx-push-url="true"> <!--replace push url to true-->
                         <h3>My profile</h3>
                     </div>
                     {{ end }}
@@ -117,6 +117,9 @@
             <div class="profile-field"><h4>Address: </h4>{{.Profile.address}}</div><hr>
             <div class="profile-field"><h4>Register date: </h4>{{.Profile.registerDate}}</div><hr>
             <div class="profile-field"><h4>Edit date: </h4>{{.Profile.editDate}}</div><hr>
+            <div class="edit-button" hx-get="/profile/edit" hx-target=".profile" hx-swap="innerHTML" hx-push-url="true">
+                <h4>Edit profile</h4>
+            </div>
         {{ else }}
         <form hx-post="/profile/create" hx-target=".profile" hx-swap="outerHTML">
             <label for="name">Name</label>
@@ -134,17 +137,35 @@
             <label for="address">Address</label>
             <input {{if .Values.address}} value="{{ .Values.address }}" {{ end }}
             type="text" id="address" name="address">
-<!--            <label for="registerDate">Register date</label>-->
-<!--            <input {{if .Values.registerDate}} value="{{ .Values.registerDate }}" {{ end }}-->
-<!--            type="text" id="registerDate" name="registerDate">-->
-<!--            <label for="editDate">Edit date</label>-->
-<!--            <input {{if .Values.editDate}} value="{{ .Values.editDate }}" {{ end }}-->
-<!--            type="text" id="editDate" name="editDate">-->
             {{ if .Errors.error }}
-                <div style="color: red">{{ .Errors.error }}</div>
+            <div style="color: red">{{ .Errors.error }}</div>
             {{ end }}
-            <button type="submit">Create profile</button>
+            <button type="submit">Create</button>
         </form>
         {{ end }}
     </div>
+{{ end }}
+
+{{ block "profile-edit" . }}
+    <form hx-post="/profile/edit" hx-target=".profile" hx-swap="outerHTML" hx-push-url="true">
+        <label for="name">Name</label>
+        <input {{if .Values.name}} value="{{ .Values.name }}" {{ end }}
+               type="text" id="name" name="name">
+        <label for="surname">Surname</label>
+        <input {{if .Values.surname}} value="{{ .Values.surname }}" {{ end }}
+               type="text" id="surname" name="surname">
+        <label for="sex">Sex</label>
+        <input {{if .Values.sex}} value="{{ .Values.sex }}" {{ end }}
+               type="text" id="sex" name="sex">
+        <label for="age">Age</label>
+        <input {{if .Values.age}} value="{{ .Values.age }}" {{ end }}
+               type="text" id="age" name="age">
+        <label for="address">Address</label>
+        <input {{if .Values.address}} value="{{ .Values.address }}" {{ end }}
+               type="text" id="address" name="address">
+        {{ if .Errors.error }}
+        <div style="color: red">{{ .Errors.error }}</div>
+        {{ end }}
+        <button type="submit">Save changes</button>
+    </form>
 {{ end }}

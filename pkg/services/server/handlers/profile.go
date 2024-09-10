@@ -52,3 +52,47 @@ func (h *ProfileHandler) GetProfile(c echo.Context) error {
 	formData.Profile["editDate"] = currentProfile.EditDate
 	return c.Render(200, "profile", formData)
 }
+
+func (h *ProfileHandler) EditProfileGET(c echo.Context) error {
+	currentSession, _ := session.SessionFromContext(c)
+	currentProfile, err := h.ProfileRepo.GetProfile(currentSession.Username)
+	formData := NewFormData()
+	if err != nil {
+		formData.Errors["error"] = err.Error()
+		return c.Render(422, "profile-edit", formData)
+	}
+	formData.Values["name"] = currentProfile.FirstName
+	formData.Values["surname"] = currentProfile.SecondName
+	formData.Values["sex"] = currentProfile.Sex
+	formData.Values["age"] = strconv.Itoa(currentProfile.Age)
+	formData.Values["address"] = currentProfile.Address
+	return c.Render(200, "profile-edit", formData)
+}
+
+func (h *ProfileHandler) EditProfilePOST(c echo.Context) error {
+	currentSession, _ := session.SessionFromContext(c)
+	oldData, _ := h.ProfileRepo.GetProfile(currentSession.Username)
+	newData := &config.User{
+		Login:        currentSession.Username,
+		FirstName:    c.FormValue("name"),
+		SecondName:   c.FormValue("surname"),
+		Sex:          c.FormValue("sex"),
+		Address:      c.FormValue("address"),
+		RegisterDate: oldData.RegisterDate,
+		EditDate:     time.Now().Format("01-02-2006 15:04:05"),
+	}
+	newData.Age, _ = strconv.Atoi(c.FormValue("age"))
+	err := h.ProfileRepo.EditProfile(currentSession.Username, newData)
+	if err != nil {
+		formData := NewFormData()
+		formData.Values["name"] = oldData.FirstName
+		formData.Values["surname"] = oldData.SecondName
+		formData.Values["sex"] = oldData.Sex
+		formData.Values["age"] = strconv.Itoa(oldData.Age)
+		formData.Values["address"] = oldData.Address
+
+		formData.Errors["error"] = err.Error()
+		return c.Render(422, "profile-edit", formData)
+	}
+	return c.Redirect(http.StatusSeeOther, "/profile/"+currentSession.Username)
+}

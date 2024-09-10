@@ -37,6 +37,8 @@ func GenerateRoutes(currentCfg *config.Config, sm *session.SessionManager, uh Us
 
 	e.GET("/profile/:username", ph.GetProfile)
 	e.POST("/profile/create", ph.CreateProfile)
+	e.GET("/profile/edit", ph.EditProfileGET)
+	e.POST("/profile/edit", ph.EditProfilePOST)
 
 	//marketplace handlers
 	e.GET("/marketplace", mh.GetProducts)
