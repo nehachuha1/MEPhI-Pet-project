@@ -99,6 +99,10 @@ func (db *DatabaseORM) RegisterUser(login, plainPassword string) (int, error) {
 	}
 
 	hashedPassword, err := argonpass.Hash(plainPassword, nil)
+	if err != nil {
+		log.Printf("Agron hashing err - %v\n", err)
+		return 0, err
+	}
 
 	currentUsr := &config.UserAuthData{
 		Login:    login,

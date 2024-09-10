@@ -11,6 +11,7 @@ import (
 	"mephiMainProject/pkg/services/server/config"
 	"mephiMainProject/pkg/services/server/database"
 	"mephiMainProject/pkg/services/server/handlers"
+	"mephiMainProject/pkg/services/server/profile"
 	"mephiMainProject/pkg/services/server/session"
 	"mephiMainProject/pkg/services/server/user"
 )
@@ -23,7 +24,7 @@ func main() {
 	currentCfg := config.NewConfig()
 	dbControl := database.NewDBUsage(currentCfg)
 	userRepo := user.NewUserRepository(currentCfg)
-	//profileRepo := profile.NewProfileRepository(currentCfg)
+	profileRepo := profile.NewProfileRepository(currentCfg)
 	sessionManager := session.NewSessionManager(dbControl, currentCfg)
 
 	//	GRPC connection to services
@@ -54,18 +55,17 @@ func main() {
 		UserRepo: userRepo,
 	}
 
-	//profileHandler := handlers.ProfileHandler{
-	//	Logger:      logger,
-	//	Sessions:    sessionManager,
-	//	ProfileRepo: profileRepo,
-	//}
-	//
+	profileHandler := handlers.ProfileHandler{
+		Logger:      logger,
+		ProfileRepo: profileRepo,
+	}
+
 	marketHandler := handlers.MarketplaceHandler{
 		Logger:             logger,
 		MarketPlaceManager: marketPlaceServ,
 	}
 	//
-	echoHandler := handlers.GenerateRoutes(currentCfg, sessionManager, userHandler, marketHandler)
+	echoHandler := handlers.GenerateRoutes(currentCfg, sessionManager, userHandler, marketHandler, profileHandler)
 
 	addr := ":8080"
 	logger.Infow("starting server",

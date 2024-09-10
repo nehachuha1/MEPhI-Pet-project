@@ -21,12 +21,15 @@ type FormData struct {
 	Values   map[string]string
 	Errors   map[string]string
 	Products []*product.Product
+	Profile  map[string]interface{}
 }
 
 func NewFormData() FormData {
 	return FormData{
-		Values: make(map[string]string),
-		Errors: make(map[string]string),
+		Values:   make(map[string]string),
+		Errors:   make(map[string]string),
+		Profile:  make(map[string]interface{}),
+		Products: make([]*product.Product, 0),
 	}
 }
 

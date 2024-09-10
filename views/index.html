@@ -30,13 +30,13 @@
 
 {{ block "form" . }}
     <div class="input-auth-form">
-        <form hx-post="/{{ .Values.requestType }}" hx-target=".input-auth-form" hx-swap="outerHTML" hx-push-url="true" class="input-auth-form" minlength="8" >
+        <form class="input-auth-form" hx-post="/{{ .Values.requestType }}" hx-target=".input-auth-form" hx-swap="outerHTML" hx-push-url="true">
                 Login: <input
-                {{if .Values.name}}value="{{ .Values.name }}" {{ end }}
+                {{if .Values.login}}value="{{ .Values.login }}" {{ end }}
                 type="text" name="login" required>
                 Password: <input
                 {{if .Values.password}}value="{{ .Values.password }}" {{ end }}
-                type="password" name="password" required>
+                type="password" name="password" minlength="8" required>
             {{ if .Errors.error }}
             <div style="color: red">{{ .Errors.error }}</div>
             {{ end }}
@@ -49,8 +49,8 @@
     <div class="main-container">
         <div class="main-container-head">
             <h1 class="main-container-head">MEPhI portal</h1>
-            <div class="isAuthorized">
-                {{ if not .Values.isAuthorized }}
+            <div class="username">
+                {{ if not .Values.username }}
                 <a class="auth" href="/login" hx-push-url="true">Login</a>
                 <a class="auth" href="/register" hx-push-url="true">Register</a>
                 {{ else }}
@@ -60,19 +60,19 @@
         </div>
         <div class="main-container-body">
             <div class="main-container-menu">
-                    {{ if .Values.isAuthorized }}
-                    <div class="menu-endpoint" hx-get="/{{ .Values.isAuthorized }}" hx-push-url="true">
+                    {{ if .Values.username }}
+                    <div class="menu-endpoint" hx-get="/profile/{{ .Values.username }}" hx-target=".main-container-interaction" hx-swap="innerHTML" hx-push-url="false"> <!--replace push url to true-->
                         <h3>My profile</h3>
                     </div>
                     {{ end }}
                     <div class="menu-endpoint" hx-get="/" hx-target="body" hx-push-url="true" hx-swap="outerHTML">
                         <h3>Main page</h3>
                     </div>
-                    <div class="menu-endpoint" hx-get="/marketplace" hx-target=".marketplace-table">
+                    <div class="menu-endpoint" hx-get="/marketplace" hx-target=".main-container-interaction" hx-swap="innerHTML">
                         <h3>Marketplace</h3>
                     </div>
             </div>
-            <div class="marketplace-table" hx-swap="innerHTML">
+            <div class="main-container-interaction">
 <!--                {{ template "marketplace-table" . }}-->
                     <h1>Main page of the site</h1>
             </div>
@@ -84,6 +84,7 @@
 {{ end }}
 
 {{ block "marketplace-table" .}}
+    <div class="marketplace-table">
         {{ if .Products }}
             {{ range .Products }}
                 {{ template "marketplace-item" .}}
@@ -93,6 +94,7 @@
                 <h1 style="color:red">{{ .Errors.error }}</h1>
             </div>
         {{ end }}
+    </div>
 {{ end }}
 
 {{ block "marketplace-item" .}}
@@ -102,5 +104,47 @@
             <article class="item">{{ .Description}}</article>
             <h4 class="item">{{ .Price }}</h4>
         </div>
+    </div>
+{{ end }}
+
+{{ block "profile" . }}
+    <div class="profile">
+        {{ if .Profile.name }}
+            <div class="profile-field">{{.Profile.name}}</div>
+            <div class="profile-field">{{.Profile.surname}}</div>
+            <div class="profile-field">{{.Profile.sex}}</div>
+            <div class="profile-field">{{.Profile.age}}</div>
+            <div class="profile-field">{{.Profile.address}}</div>
+            <div class="profile-field">{{.Profile.registerDate}}</div>
+            <div class="profile-field">{{.Profile.editDate}}</div>
+        {{ else }}
+        <form hx-post="/profile/create" hx-target=".profile" hx-swap="outerHTML">
+            <label for="name">Name</label>
+            <input {{if .Values.name}} value="{{ .Values.name }}" {{ end }}
+            type="text" id="name" name="name">
+            <label for="surname">Surname</label>
+            <input {{if .Values.surname}} value="{{ .Values.surname }}" {{ end }}
+            type="text" id="surname" name="surname">
+            <label for="sex">Sex</label>
+            <input {{if .Values.sex}} value="{{ .Values.sex }}" {{ end }}
+            type="text" id="sex" name="sex">
+            <label for="age">Age</label>
+            <input {{if .Values.age}} value="{{ .Values.age }}" {{ end }}
+            type="text" id="age" name="age">
+            <label for="address">Address</label>
+            <input {{if .Values.address}} value="{{ .Values.address }}" {{ end }}
+            type="text" id="address" name="address">
+            <label for="registerDate">Register date</label>
+            <input {{if .Values.registerDate}} value="{{ .Values.registerDate }}" {{ end }}
+            type="text" id="registerDate" name="registerDate">
+            <label for="editDate">Edit date</label>
+            <input {{if .Values.editDate}} value="{{ .Values.editDate }}" {{ end }}
+            type="text" id="editDate" name="editDate">
+            {{ if .Errors.error }}
+                <div style="color: red">{{ .Errors.error }}</div>
+            {{ end }}
+            <button type="submit">Create profile</button>
+        </form>
+        {{ end }}
     </div>
 {{ end }}

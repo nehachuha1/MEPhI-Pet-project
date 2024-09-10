@@ -10,7 +10,7 @@ import (
 	"net/http"
 )
 
-func GenerateRoutes(currentCfg *config.Config, sm *session.SessionManager, uh UserHandler, mh MarketplaceHandler) *echo.Echo {
+func GenerateRoutes(currentCfg *config.Config, sm *session.SessionManager, uh UserHandler, mh MarketplaceHandler, ph ProfileHandler) *echo.Echo {
 	e := echo.New()
 
 	//static connection
@@ -24,7 +24,7 @@ func GenerateRoutes(currentCfg *config.Config, sm *session.SessionManager, uh Us
 			log.Printf("MAIN PAGE ERR - %v\n", err)
 			return c.Render(http.StatusOK, "index", formData)
 		}
-		formData.Values["isAuthorized"] = currentSession.Username
+		formData.Values["username"] = currentSession.Username
 		return c.Render(http.StatusOK, "index", formData)
 	})
 
@@ -34,6 +34,9 @@ func GenerateRoutes(currentCfg *config.Config, sm *session.SessionManager, uh Us
 	e.GET("/logout", uh.Logout)
 	e.POST("/register", uh.RegisterPOST)
 	e.POST("/login", uh.LoginPOST)
+
+	e.GET("/profile/:username", ph.GetProfile)
+	e.POST("/profile/create", ph.CreateProfile)
 
 	//marketplace handlers
 	e.GET("/marketplace", mh.GetProducts)
