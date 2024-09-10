@@ -8,6 +8,7 @@ import (
 	"mephiMainProject/pkg/services/server/session"
 	"net/http"
 	"strconv"
+	"time"
 )
 
 type ProfileHandler struct {
@@ -23,8 +24,8 @@ func (h *ProfileHandler) CreateProfile(c echo.Context) error {
 		SecondName:   c.FormValue("surname"),
 		Sex:          c.FormValue("sex"),
 		Address:      c.FormValue("address"),
-		RegisterDate: c.FormValue("registerDate"),
-		EditDate:     c.FormValue("editDate"),
+		RegisterDate: time.Now().Format("01-02-2006 15:04:05"),
+		EditDate:     time.Now().Format("01-02-2006 15:04:05"),
 	}
 	currentProfile.Age, _ = strconv.Atoi(c.FormValue("age"))
 	err := h.ProfileRepo.CreateProfile(currentProfile, currentSession.Username)

@@ -110,13 +110,13 @@
 {{ block "profile" . }}
     <div class="profile">
         {{ if .Profile.name }}
-            <div class="profile-field">{{.Profile.name}}</div>
-            <div class="profile-field">{{.Profile.surname}}</div>
-            <div class="profile-field">{{.Profile.sex}}</div>
-            <div class="profile-field">{{.Profile.age}}</div>
-            <div class="profile-field">{{.Profile.address}}</div>
-            <div class="profile-field">{{.Profile.registerDate}}</div>
-            <div class="profile-field">{{.Profile.editDate}}</div>
+            <div class="profile-field"><h4>Name: </h4>{{.Profile.name}}</div><hr>
+            <div class="profile-field"><h4>Surname: </h4>{{.Profile.surname}}</div><hr>
+            <div class="profile-field"><h4>Sex: </h4>{{.Profile.sex}}</div><hr>
+            <div class="profile-field"><h4>Age: </h4>{{.Profile.age}}</div><hr>
+            <div class="profile-field"><h4>Address: </h4>{{.Profile.address}}</div><hr>
+            <div class="profile-field"><h4>Register date: </h4>{{.Profile.registerDate}}</div><hr>
+            <div class="profile-field"><h4>Edit date: </h4>{{.Profile.editDate}}</div><hr>
         {{ else }}
         <form hx-post="/profile/create" hx-target=".profile" hx-swap="outerHTML">
             <label for="name">Name</label>
@@ -134,12 +134,12 @@
             <label for="address">Address</label>
             <input {{if .Values.address}} value="{{ .Values.address }}" {{ end }}
             type="text" id="address" name="address">
-            <label for="registerDate">Register date</label>
-            <input {{if .Values.registerDate}} value="{{ .Values.registerDate }}" {{ end }}
-            type="text" id="registerDate" name="registerDate">
-            <label for="editDate">Edit date</label>
-            <input {{if .Values.editDate}} value="{{ .Values.editDate }}" {{ end }}
-            type="text" id="editDate" name="editDate">
+<!--            <label for="registerDate">Register date</label>-->
+<!--            <input {{if .Values.registerDate}} value="{{ .Values.registerDate }}" {{ end }}-->
+<!--            type="text" id="registerDate" name="registerDate">-->
+<!--            <label for="editDate">Edit date</label>-->
+<!--            <input {{if .Values.editDate}} value="{{ .Values.editDate }}" {{ end }}-->
+<!--            type="text" id="editDate" name="editDate">-->
             {{ if .Errors.error }}
                 <div style="color: red">{{ .Errors.error }}</div>
             {{ end }}

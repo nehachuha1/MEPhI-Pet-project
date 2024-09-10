@@ -84,3 +84,11 @@ div.marketplace-item-photo {
     background-position: -40px 0px;
     background-size: cover;
 }
+
+div.profile-field {
+    display: flex;
+    flex-direction: column;
+    /*border: 2px solid red;*/
+    text-align: left;
+    padding-left: 20px;
+}
