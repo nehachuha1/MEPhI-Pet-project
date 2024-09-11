@@ -1,0 +1,123 @@
+{{block "profile-view" .}}
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" href="../views/css/style.css">
+        <script src="https://unpkg.com/htmx.org@2.0.2" integrity="sha384-Y7hw+L/jvKeWIRRkqWYfPcvVxHzVzn5REgzbawhxAuQGwX1XWe70vji+VSeHOThJ" crossorigin="anonymous"></script>
+        <script>
+            document.addEventListener("DOMContentLoaded", (event) => {
+                document.body.addEventListener('htmx:beforeSwap', function (evt) {
+                    if (evt.detail.xhr.status === 422) {
+                        evt.detail.shouldSwap = true;
+                        evt.detail.isError = false;
+                    }
+                });
+            })
+        </script>
+        <title>Main page</title>
+    </head>
+    <body>
+    <div class="main-container">
+        <div class="main-container-head">
+            <h1 class="main-container-head">MEPhI portal</h1>
+            <div class="username">
+                {{ if not .Values.username }}
+                <a class="auth" href="/login" hx-push-url="true">Login</a>
+                <a class="auth" href="/register" hx-push-url="true">Register</a>
+                {{ else }}
+                <a class="auth" href="/logout" hx-push-url="true">Logout</a>
+                {{ end }}
+            </div>
+        </div>
+        <div class="main-container-body">
+            <div class="main-container-menu">
+                {{ if .Values.username }}
+                <a href="/profile/{{ .Values.username }} ">
+                    <div class="menu-endpoint"> <!--replace push url to true-->
+                        <h3>My profile</h3>
+                    </div>
+                </a>
+                {{ end }}
+                <div class="menu-endpoint" hx-get="/" hx-target="body" hx-push-url="true" hx-swap="outerHTML">
+                    <h3>Main page</h3>
+                </div>
+                <div class="menu-endpoint" hx-get="/marketplace" hx-target=".main-container-interaction" hx-swap="innerHTML">
+                    <h3>Marketplace</h3>
+                </div>
+            </div>
+            <div class="main-container-interaction">
+                    {{ template "profile" . }}
+            </div>
+        </div>
+        <div class="main-container-footer">
+
+        </div>
+    </div>
+</body>
+</html>
+{{ end }}
+
+{{ block "profile" . }}
+<div class="profile">
+    {{ if .Profile.name }}
+    <div class="profile-field"><h4>Name: </h4>{{.Profile.name}}</div><hr>
+    <div class="profile-field"><h4>Surname: </h4>{{.Profile.surname}}</div><hr>
+    <div class="profile-field"><h4>Sex: </h4>{{.Profile.sex}}</div><hr>
+    <div class="profile-field"><h4>Age: </h4>{{.Profile.age}}</div><hr>
+    <div class="profile-field"><h4>Address: </h4>{{.Profile.address}}</div><hr>
+    <div class="profile-field"><h4>Register date: </h4>{{.Profile.registerDate}}</div><hr>
+    <div class="profile-field"><h4>Edit date: </h4>{{.Profile.editDate}}</div><hr>
+    <div class="edit-button" hx-get="/profile/edit" hx-target=".profile" hx-swap="innerHTML">
+        <h4>Edit profile</h4>
+    </div>
+    {{ else }}
+    <form hx-post="/profile/create" hx-target=".profile" hx-swap="outerHTML">
+        <label for="name">Name</label>
+        <input {{if .Values.name}} value="{{ .Values.name }}" {{ end }}
+               type="text" id="name" name="name">
+        <label for="surname">Surname</label>
+        <input {{if .Values.surname}} value="{{ .Values.surname }}" {{ end }}
+               type="text" id="surname" name="surname">
+        <label for="sex">Sex</label>
+        <input {{if .Values.sex}} value="{{ .Values.sex }}" {{ end }}
+               type="text" id="sex" name="sex">
+        <label for="age">Age</label>
+        <input {{if .Values.age}} value="{{ .Values.age }}" {{ end }}
+               type="text" id="age" name="age">
+        <label for="address">Address</label>
+        <input {{if .Values.address}} value="{{ .Values.address }}" {{ end }}
+               type="text" id="address" name="address">
+        {{ if .Errors.error }}
+        <div style="color: red">{{ .Errors.error }}</div>
+        {{ end }}
+        <button type="submit">Create</button>
+    </form>
+    {{ end }}
+</div>
+{{ end }}
+
+{{ block "profile-edit" . }}
+<form hx-post="/profile/edit" hx-swap="outerHTML">
+    <label for="name">Name</label>
+    <input {{if .Values.name}} value="{{ .Values.name }}" {{ end }}
+           type="text" id="name" name="name">
+    <label for="surname">Surname</label>
+    <input {{if .Values.surname}} value="{{ .Values.surname }}" {{ end }}
+           type="text" id="surname" name="surname">
+    <label for="sex">Sex</label>
+    <input {{if .Values.sex}} value="{{ .Values.sex }}" {{ end }}
+           type="text" id="sex" name="sex">
+    <label for="age">Age</label>
+    <input {{if .Values.age}} value="{{ .Values.age }}" {{ end }}
+           type="text" id="age" name="age">
+    <label for="address">Address</label>
+    <input {{if .Values.address}} value="{{ .Values.address }}" {{ end }}
+           type="text" id="address" name="address">
+    {{ if .Errors.error }}
+    <div style="color: red">{{ .Errors.error }}</div>
+    {{ end }}
+    <button type="submit">Save changes</button>
+</form>
+{{ end }}

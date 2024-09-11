@@ -18,9 +18,10 @@ func (mh *MarketplaceHandler) GetProducts(c echo.Context) error {
 
 	formData := NewFormData()
 	if err != nil {
-		formData.Errors["error"] = "No content available "
+		formData.Errors["error"] = err.Error()
 		return c.Render(http.StatusOK, "marketplace-table", formData)
 	}
 	formData.Products = allProducts.GetProducts()
-	return c.Render(http.StatusOK, "index", formData)
+	formData.Values["marketplace"] = "marketplace"
+	return c.Render(http.StatusOK, "marketplace-table", formData)
 }

@@ -16,13 +16,51 @@
             });
         })
     </script>
-    <title>Index page</title>
+    <title>Main page</title>
 </head>
 <body>
     {{ if .Values.requestType }}
         {{ template "form" .}}
     {{ else }}
-        {{ template "main" . }}
+    <div class="main-container">
+        <div class="main-container-head">
+            <h1 class="main-container-head">MEPhI portal</h1>
+            <div class="username">
+                {{ if not .Values.username }}
+                <a class="auth" href="/login" hx-push-url="true">Login</a>
+                <a class="auth" href="/register" hx-push-url="true">Register</a>
+                {{ else }}
+                <a class="auth" href="/logout" hx-push-url="true">Logout</a>
+                {{ end }}
+            </div>
+        </div>
+        <div class="main-container-body">
+            <div class="main-container-menu">
+                    {{ if .Values.username }}
+                    <a href="/profile/{{ .Values.username }} ">
+                    <div class="menu-endpoint"> <!--replace push url to true-->
+                        <h3>My profile</h3>
+                    </div>
+                    </a>
+                    {{ end }}
+                    <div class="menu-endpoint" hx-get="/" hx-target="body" hx-push-url="true" hx-swap="outerHTML">
+                        <h3>Main page</h3>
+                    </div>
+                    <div class="menu-endpoint" hx-get="/marketplace" hx-target=".main-container-interaction" hx-swap="innerHTML">
+                        <h3>Marketplace</h3>
+                    </div>
+            </div>
+            <div class="main-container-interaction">
+                {{ if .Values.marketplace }}
+                    {{ template "marketplace-table" . }}
+                {{ end }}
+                <h1>Main page of the site</h1>
+            </div>
+        </div>
+        <div class="main-container-footer">
+
+        </div>
+    </div>
     {{ end }}
 </body>
 </html>
@@ -45,127 +83,4 @@
     </div>
 {{ end }}
 
-{{ block "main" . }}
-    <div class="main-container">
-        <div class="main-container-head">
-            <h1 class="main-container-head">MEPhI portal</h1>
-            <div class="username">
-                {{ if not .Values.username }}
-                <a class="auth" href="/login" hx-push-url="true">Login</a>
-                <a class="auth" href="/register" hx-push-url="true">Register</a>
-                {{ else }}
-                <a class="auth" href="/logout" hx-push-url="true">Logout</a>
-                {{ end }}
-            </div>
-        </div>
-        <div class="main-container-body">
-            <div class="main-container-menu">
-                    {{ if .Values.username }}
-                    <div class="menu-endpoint" hx-get="/profile/{{ .Values.username }}" hx-target=".main-container-interaction" hx-swap="innerHTML" hx-push-url="true"> <!--replace push url to true-->
-                        <h3>My profile</h3>
-                    </div>
-                    {{ end }}
-                    <div class="menu-endpoint" hx-get="/" hx-target="body" hx-push-url="true" hx-swap="outerHTML">
-                        <h3>Main page</h3>
-                    </div>
-                    <div class="menu-endpoint" hx-get="/marketplace" hx-target=".main-container-interaction" hx-swap="innerHTML">
-                        <h3>Marketplace</h3>
-                    </div>
-            </div>
-            <div class="main-container-interaction">
-<!--                {{ template "marketplace-table" . }}-->
-                    <h1>Main page of the site</h1>
-            </div>
-        </div>
-        <div class="main-container-footer">
 
-        </div>
-    </div>
-{{ end }}
-
-{{ block "marketplace-table" .}}
-    <div class="marketplace-table">
-        {{ if .Products }}
-            {{ range .Products }}
-                {{ template "marketplace-item" .}}
-            {{ end }}
-        {{ else }}
-            <div class="no-content">
-                <h1 style="color:red">{{ .Errors.error }}</h1>
-            </div>
-        {{ end }}
-    </div>
-{{ end }}
-
-{{ block "marketplace-item" .}}
-    <div class="marketplace-item" id="product-{{ .Id }}" hx-get="/marketplace/product/{{ .Id }}">
-        <div class="marketplace-item-photo" style="/*background-image: url();*/"></div>
-        <div>
-            <article class="item">{{ .Description}}</article>
-            <h4 class="item">{{ .Price }}</h4>
-        </div>
-    </div>
-{{ end }}
-
-{{ block "profile" . }}
-    <div class="profile">
-        {{ if .Profile.name }}
-            <div class="profile-field"><h4>Name: </h4>{{.Profile.name}}</div><hr>
-            <div class="profile-field"><h4>Surname: </h4>{{.Profile.surname}}</div><hr>
-            <div class="profile-field"><h4>Sex: </h4>{{.Profile.sex}}</div><hr>
-            <div class="profile-field"><h4>Age: </h4>{{.Profile.age}}</div><hr>
-            <div class="profile-field"><h4>Address: </h4>{{.Profile.address}}</div><hr>
-            <div class="profile-field"><h4>Register date: </h4>{{.Profile.registerDate}}</div><hr>
-            <div class="profile-field"><h4>Edit date: </h4>{{.Profile.editDate}}</div><hr>
-            <div class="edit-button" hx-get="/profile/edit" hx-target=".profile" hx-swap="innerHTML" hx-push-url="true">
-                <h4>Edit profile</h4>
-            </div>
-        {{ else }}
-        <form hx-post="/profile/create" hx-target=".profile" hx-swap="outerHTML">
-            <label for="name">Name</label>
-            <input {{if .Values.name}} value="{{ .Values.name }}" {{ end }}
-            type="text" id="name" name="name">
-            <label for="surname">Surname</label>
-            <input {{if .Values.surname}} value="{{ .Values.surname }}" {{ end }}
-            type="text" id="surname" name="surname">
-            <label for="sex">Sex</label>
-            <input {{if .Values.sex}} value="{{ .Values.sex }}" {{ end }}
-            type="text" id="sex" name="sex">
-            <label for="age">Age</label>
-            <input {{if .Values.age}} value="{{ .Values.age }}" {{ end }}
-            type="text" id="age" name="age">
-            <label for="address">Address</label>
-            <input {{if .Values.address}} value="{{ .Values.address }}" {{ end }}
-            type="text" id="address" name="address">
-            {{ if .Errors.error }}
-            <div style="color: red">{{ .Errors.error }}</div>
-            {{ end }}
-            <button type="submit">Create</button>
-        </form>
-        {{ end }}
-    </div>
-{{ end }}
-
-{{ block "profile-edit" . }}
-    <form hx-post="/profile/edit" hx-target=".profile" hx-swap="outerHTML" hx-push-url="true">
-        <label for="name">Name</label>
-        <input {{if .Values.name}} value="{{ .Values.name }}" {{ end }}
-               type="text" id="name" name="name">
-        <label for="surname">Surname</label>
-        <input {{if .Values.surname}} value="{{ .Values.surname }}" {{ end }}
-               type="text" id="surname" name="surname">
-        <label for="sex">Sex</label>
-        <input {{if .Values.sex}} value="{{ .Values.sex }}" {{ end }}
-               type="text" id="sex" name="sex">
-        <label for="age">Age</label>
-        <input {{if .Values.age}} value="{{ .Values.age }}" {{ end }}
-               type="text" id="age" name="age">
-        <label for="address">Address</label>
-        <input {{if .Values.address}} value="{{ .Values.address }}" {{ end }}
-               type="text" id="address" name="address">
-        {{ if .Errors.error }}
-        <div style="color: red">{{ .Errors.error }}</div>
-        {{ end }}
-        <button type="submit">Save changes</button>
-    </form>
-{{ end }}

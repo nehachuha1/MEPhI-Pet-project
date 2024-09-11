@@ -33,7 +33,7 @@ func NewDBUsage(cfg *config.Config) *DatabaseORM {
 }
 
 func (db *DatabaseORM) GetAllProducts() ([]config.Product, error) {
-	rows, err := db.Pgx.DB.Query("SELECT name, owner_username, price, description, create_date, edit_date, is_active, views, photo_urls FROM public.products;")
+	rows, err := db.Pgx.DB.Query("SELECT name, owner_username, price, description, create_date, edit_date, is_active, views FROM public.products;")
 	if err != nil {
 		log.Printf("GetAllProducts err - %v\n", err)
 		return []config.Product{}, err
@@ -43,10 +43,9 @@ func (db *DatabaseORM) GetAllProducts() ([]config.Product, error) {
 	for rows.Next() {
 		var currentProduct config.Product
 		err = rows.Scan(&currentProduct.Name, &currentProduct.OwnerUsername, &currentProduct.Price, &currentProduct.Description, &currentProduct.CreateDate,
-			&currentProduct.EditDate, &currentProduct.IsActive, &currentProduct.Views, &currentProduct.PhotoURLs)
+			&currentProduct.EditDate, &currentProduct.IsActive, &currentProduct.Views)
 		if err != nil {
 			log.Printf("Error while scanning current product - %v\n", err)
-			return []config.Product{}, err
 		}
 
 		allProducts = append(allProducts, currentProduct)

@@ -1,0 +1,24 @@
+{{ block "marketplace-table" .}}
+<div class="marketplace-table">
+    {{ if .Products }}
+    {{ range .Products }}
+    {{ template "marketplace-item" .}}
+    {{ end }}
+    {{ else }}
+    <div class="no-content">
+        <h1 style="color:red">{{ .Errors.error }}</h1>
+    </div>
+    {{ end }}
+</div>
+{{ end }}
+
+{{ block "marketplace-item" .}}
+<div class="marketplace-item" id="product-{{ .Id }}" hx-get="/marketplace/product/{{ .Id }}" hx-push-url="true">
+    <img class="marketplace-item" src="https://home.mephi.ru/system/users/avatars/000/029/479/medium/IMG_20230811_123751.jpg">
+    <div>
+        <article class="item">{{ .Name }}</article>
+        <article class="item">{{ .Description}}</article>
+        <h4 class="item">{{ .Price }}</h4>
+    </div>
+</div>
+{{ end }}

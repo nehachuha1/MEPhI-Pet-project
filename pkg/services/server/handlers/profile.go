@@ -30,18 +30,10 @@ func (h *ProfileHandler) CreateProfile(c echo.Context) error {
 	currentProfile.Age, _ = strconv.Atoi(c.FormValue("age"))
 	err := h.ProfileRepo.CreateProfile(currentProfile, currentSession.Username)
 	formData := NewFormData()
+	formData.Values["username"] = currentSession.Username
 	if err != nil {
 		formData.Errors["error"] = err.Error()
 		return c.Render(422, "profile", formData)
-	}
-	return c.Redirect(http.StatusSeeOther, "/profile/"+currentSession.Username)
-}
-
-func (h *ProfileHandler) GetProfile(c echo.Context) error {
-	formData := NewFormData()
-	currentProfile, err := h.ProfileRepo.GetProfile(c.Param("username"))
-	if err != nil {
-		return c.Render(200, "profile", formData)
 	}
 	formData.Profile["name"] = currentProfile.FirstName
 	formData.Profile["surname"] = currentProfile.SecondName
@@ -50,13 +42,33 @@ func (h *ProfileHandler) GetProfile(c echo.Context) error {
 	formData.Profile["address"] = currentProfile.Address
 	formData.Profile["registerDate"] = currentProfile.RegisterDate
 	formData.Profile["editDate"] = currentProfile.EditDate
-	return c.Render(200, "profile", formData)
+	c.Render(200, "profile", formData)
+	return c.Redirect(http.StatusSeeOther, "/profile/"+currentSession.Username)
+}
+
+func (h *ProfileHandler) GetProfile(c echo.Context) error {
+	formData := NewFormData()
+	sess, _ := session.SessionFromContext(c)
+	formData.Values["username"] = sess.Username
+	currentProfile, err := h.ProfileRepo.GetProfile(c.Param("username"))
+	if err != nil {
+		return c.Render(200, "profile-view", formData)
+	}
+	formData.Profile["name"] = currentProfile.FirstName
+	formData.Profile["surname"] = currentProfile.SecondName
+	formData.Profile["sex"] = currentProfile.Sex
+	formData.Profile["age"] = currentProfile.Age
+	formData.Profile["address"] = currentProfile.Address
+	formData.Profile["registerDate"] = currentProfile.RegisterDate
+	formData.Profile["editDate"] = currentProfile.EditDate
+	return c.Render(200, "profile-view", formData)
 }
 
 func (h *ProfileHandler) EditProfileGET(c echo.Context) error {
 	currentSession, _ := session.SessionFromContext(c)
 	currentProfile, err := h.ProfileRepo.GetProfile(currentSession.Username)
 	formData := NewFormData()
+	formData.Values["username"] = currentSession.Username
 	if err != nil {
 		formData.Errors["error"] = err.Error()
 		return c.Render(422, "profile-edit", formData)
@@ -83,8 +95,9 @@ func (h *ProfileHandler) EditProfilePOST(c echo.Context) error {
 	}
 	newData.Age, _ = strconv.Atoi(c.FormValue("age"))
 	err := h.ProfileRepo.EditProfile(currentSession.Username, newData)
+	formData := NewFormData()
+	formData.Values["username"] = currentSession.Username
 	if err != nil {
-		formData := NewFormData()
 		formData.Values["name"] = oldData.FirstName
 		formData.Values["surname"] = oldData.SecondName
 		formData.Values["sex"] = oldData.Sex
@@ -94,5 +107,17 @@ func (h *ProfileHandler) EditProfilePOST(c echo.Context) error {
 		formData.Errors["error"] = err.Error()
 		return c.Render(422, "profile-edit", formData)
 	}
+	currentProfile, err := h.ProfileRepo.GetProfile(currentSession.Username)
+	if err != nil {
+		return c.Render(200, "profile-view", formData)
+	}
+	formData.Profile["name"] = currentProfile.FirstName
+	formData.Profile["surname"] = currentProfile.SecondName
+	formData.Profile["sex"] = currentProfile.Sex
+	formData.Profile["age"] = currentProfile.Age
+	formData.Profile["address"] = currentProfile.Address
+	formData.Profile["registerDate"] = currentProfile.RegisterDate
+	formData.Profile["editDate"] = currentProfile.EditDate
+	c.Render(200, "profile", formData)
 	return c.Redirect(http.StatusSeeOther, "/profile/"+currentSession.Username)
 }

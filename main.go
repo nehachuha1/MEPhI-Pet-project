@@ -29,6 +29,10 @@ func main() {
 
 	//	GRPC connection to services
 	grpcConn, err := grpc.NewClient(":"+currentCfg.GrpcPort, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		log.Fatalf("gRPC connection err - %v", err)
+		return
+	}
 	defer grpcConn.Close()
 
 	if err != nil {
