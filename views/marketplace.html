@@ -1,9 +1,87 @@
+{{block "marketplace-view" .}}
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" href="views/css/style.css">
+        <script src="https://unpkg.com/htmx.org@2.0.2" integrity="sha384-Y7hw+L/jvKeWIRRkqWYfPcvVxHzVzn5REgzbawhxAuQGwX1XWe70vji+VSeHOThJ" crossorigin="anonymous"></script>
+        <script>
+            document.addEventListener("DOMContentLoaded", (event) => {
+                document.body.addEventListener('htmx:beforeSwap', function (evt) {
+                    if (evt.detail.xhr.status === 422) {
+                        evt.detail.shouldSwap = true;
+                        evt.detail.isError = false;
+                    }
+                });
+            })
+        </script>
+        <title>Main page</title>
+    </head>
+    <body>
+    <div class="main-container">
+        <div class="main-container-head">
+            <h1 class="main-container-head">MEPhI portal</h1>
+            <div class="username">
+                {{ if not .Values.username }}
+                <a class="auth" href="/login" hx-push-url="true">Login</a>
+                <a class="auth" href="/register" hx-push-url="true">Register</a>
+                {{ else }}
+                <a class="auth" href="/logout" hx-push-url="true">Logout</a>
+                {{ end }}
+            </div>
+        </div>
+        <div class="main-container-body">
+            <div class="main-container-menu">
+                {{ if .Values.username }}
+                <a href="/profile/{{ .Values.username }} " style="text-decoration: none; color: black;">
+                    <div class="menu-endpoint"> <!--replace push url to true-->
+                        <h3>My profile</h3>
+                    </div>
+                </a>
+                {{ end }}
+                <div class="menu-endpoint" hx-get="/" hx-target="body" hx-push-url="true" hx-swap="outerHTML">
+                    <h3>Main page</h3>
+                </div>
+                <a href="/marketplace" style="text-decoration: none; color: black;">
+                    <div class="menu-endpoint">
+                        <h3>Marketplace</h3>
+                    </div>
+                </a>
+            </div>
+            <div class="main-container-interaction">
+                {{ template "marketplace-buttons" . }}
+                {{ template "marketplace-table" . }}
+            </div>
+        </div>
+        <div class="main-container-footer">
+
+        </div>
+    </div>
+    </body>
+    </html>
+{{ end }}
+
+{{ block "marketplace-buttons" . }}
+    <div class="marketplace-buttons-container">
+        <div class="marketplace-button" hx-get="/marketplace/find">
+            <h3>Find product</h3>
+        </div>
+        <div class="marketplace-button" hx-get="/marketplace/create" hx-swap="innerHTML" hx-target=".marketplace-table">
+            <h3>Add product</h3>
+        </div>
+        <div class="marketplace-button" hx-get="/marketplace/products/{{ .Values.username }}">
+            <h3>My products</h3>
+        </div>
+    </div>
+{{ end }}
+
 {{ block "marketplace-table" .}}
 <div class="marketplace-table">
     {{ if .Products }}
-    {{ range .Products }}
-    {{ template "marketplace-item" .}}
-    {{ end }}
+        {{ range .Products }}
+            {{ template "marketplace-item" .}}
+        {{ end }}
     {{ else }}
     <div class="no-content">
         <h1 style="color:red">{{ .Errors.error }}</h1>
@@ -20,5 +98,31 @@
         <article class="item">{{ .Description}}</article>
         <h4 class="item">{{ .Price }}</h4>
     </div>
+</div>
+{{ end }}
+
+{{ block "marketplace-form-add" . }}
+<div class="marketplace-form-add-container">
+    <form hx-post="/marketplace/create" hx-swap="outerHTML">
+        <label for="name">Name</label>
+        <input {{if .Values.name}} value="{{ .Values.name }}" {{ end }}
+               type="text" id="name" name="name">
+        <label for="price">Price</label>
+        <input {{if .Values.price}} value="{{ .Values.price}}" {{ end }}
+               type="text" id="price" name="price">
+        <label for="description">Description</label>
+        <textarea id="description" name="description" rows="5" cols="10"></textarea>
+        <button type="submit">Save changes</button>
+        <div>
+            {{ if .Errors.error }}
+            <div style="color: red">{{ .Errors.createError }}</div>
+            {{ end }}
+        </div>
+    </form>
+    <a href="/marketplace">
+        <div>
+            <h4>Cancel</h4>
+        </div>
+    </a>
 </div>
 {{ end }}

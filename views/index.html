@@ -37,7 +37,7 @@
         <div class="main-container-body">
             <div class="main-container-menu">
                     {{ if .Values.username }}
-                    <a href="/profile/{{ .Values.username }} ">
+                    <a href="/profile/{{ .Values.username }} " style="text-decoration: none; color: black;">
                     <div class="menu-endpoint"> <!--replace push url to true-->
                         <h3>My profile</h3>
                     </div>
@@ -46,9 +46,11 @@
                     <div class="menu-endpoint" hx-get="/" hx-target="body" hx-push-url="true" hx-swap="outerHTML">
                         <h3>Main page</h3>
                     </div>
-                    <div class="menu-endpoint" hx-get="/marketplace" hx-target=".main-container-interaction" hx-swap="innerHTML">
-                        <h3>Marketplace</h3>
-                    </div>
+                    <a href="/marketplace" style="text-decoration: none; color: black;">
+                        <div class="menu-endpoint">
+                            <h3>Marketplace</h3>
+                        </div>
+                    </a>
             </div>
             <div class="main-container-interaction">
                 {{ if .Values.marketplace }}

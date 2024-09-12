@@ -34,7 +34,7 @@
         <div class="main-container-body">
             <div class="main-container-menu">
                 {{ if .Values.username }}
-                <a href="/profile/{{ .Values.username }} ">
+                <a href="/profile/{{ .Values.username }}" style="text-decoration: none; color: black;">
                     <div class="menu-endpoint"> <!--replace push url to true-->
                         <h3>My profile</h3>
                     </div>
@@ -43,9 +43,11 @@
                 <div class="menu-endpoint" hx-get="/" hx-target="body" hx-push-url="true" hx-swap="outerHTML">
                     <h3>Main page</h3>
                 </div>
-                <div class="menu-endpoint" hx-get="/marketplace" hx-target=".main-container-interaction" hx-swap="innerHTML">
-                    <h3>Marketplace</h3>
-                </div>
+                <a href="/marketplace" style="text-decoration: none; color: black;">
+                    <div class="menu-endpoint">
+                        <h3>Marketplace</h3>
+                    </div>
+                </a>
             </div>
             <div class="main-container-interaction">
                     {{ template "profile" . }}
@@ -61,7 +63,9 @@
 
 {{ block "profile" . }}
 <div class="profile">
-    {{ if .Profile.name }}
+    {{ if .Errors.error }}
+    <div style="color: red">{{ .Errors.error }}</div>
+    {{ else if .Profile.name }}
     <div class="profile-field"><h4>Name: </h4>{{.Profile.name}}</div><hr>
     <div class="profile-field"><h4>Surname: </h4>{{.Profile.surname}}</div><hr>
     <div class="profile-field"><h4>Sex: </h4>{{.Profile.sex}}</div><hr>
@@ -69,9 +73,11 @@
     <div class="profile-field"><h4>Address: </h4>{{.Profile.address}}</div><hr>
     <div class="profile-field"><h4>Register date: </h4>{{.Profile.registerDate}}</div><hr>
     <div class="profile-field"><h4>Edit date: </h4>{{.Profile.editDate}}</div><hr>
+        {{ if .Values.currentUserIsOwner }}
     <div class="edit-button" hx-get="/profile/edit" hx-target=".profile" hx-swap="innerHTML">
         <h4>Edit profile</h4>
     </div>
+        {{ end }}
     {{ else }}
     <form hx-post="/profile/create" hx-target=".profile" hx-swap="outerHTML">
         <label for="name">Name</label>
@@ -89,9 +95,9 @@
         <label for="address">Address</label>
         <input {{if .Values.address}} value="{{ .Values.address }}" {{ end }}
                type="text" id="address" name="address">
-        {{ if .Errors.error }}
-        <div style="color: red">{{ .Errors.error }}</div>
-        {{ end }}
+            {{ if .Errors.createError }}
+            <div style="color: red">{{ .Errors.createError }}</div>
+            {{ end }}
         <button type="submit">Create</button>
     </form>
     {{ end }}
@@ -99,25 +105,26 @@
 {{ end }}
 
 {{ block "profile-edit" . }}
-<form hx-post="/profile/edit" hx-swap="outerHTML">
-    <label for="name">Name</label>
-    <input {{if .Values.name}} value="{{ .Values.name }}" {{ end }}
-           type="text" id="name" name="name">
-    <label for="surname">Surname</label>
-    <input {{if .Values.surname}} value="{{ .Values.surname }}" {{ end }}
-           type="text" id="surname" name="surname">
-    <label for="sex">Sex</label>
-    <input {{if .Values.sex}} value="{{ .Values.sex }}" {{ end }}
-           type="text" id="sex" name="sex">
-    <label for="age">Age</label>
-    <input {{if .Values.age}} value="{{ .Values.age }}" {{ end }}
-           type="text" id="age" name="age">
-    <label for="address">Address</label>
-    <input {{if .Values.address}} value="{{ .Values.address }}" {{ end }}
-           type="text" id="address" name="address">
     {{ if .Errors.error }}
     <div style="color: red">{{ .Errors.error }}</div>
+    {{ else }}
+    <form hx-post="/profile/edit" hx-swap="outerHTML">
+        <label for="name">Name</label>
+        <input {{if .Values.name}} value="{{ .Values.name }}" {{ end }}
+               type="text" id="name" name="name">
+        <label for="surname">Surname</label>
+        <input {{if .Values.surname}} value="{{ .Values.surname }}" {{ end }}
+               type="text" id="surname" name="surname">
+        <label for="sex">Sex</label>
+        <input {{if .Values.sex}} value="{{ .Values.sex }}" {{ end }}
+               type="text" id="sex" name="sex">
+        <label for="age">Age</label>
+        <input {{if .Values.age}} value="{{ .Values.age }}" {{ end }}
+               type="text" id="age" name="age">
+        <label for="address">Address</label>
+        <input {{if .Values.address}} value="{{ .Values.address }}" {{ end }}
+               type="text" id="address" name="address">
+        <button type="submit">Save changes</button>
+    </form>
     {{ end }}
-    <button type="submit">Save changes</button>
-</form>
 {{ end }}

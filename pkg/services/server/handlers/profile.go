@@ -31,8 +31,11 @@ func (h *ProfileHandler) CreateProfile(c echo.Context) error {
 	err := h.ProfileRepo.CreateProfile(currentProfile, currentSession.Username)
 	formData := NewFormData()
 	formData.Values["username"] = currentSession.Username
+	if currentSession.Username == currentProfile.Login {
+		formData.Values["currentUserIsOwner"] = currentSession.Username
+	}
 	if err != nil {
-		formData.Errors["error"] = err.Error()
+		formData.Errors["createError"] = err.Error()
 		return c.Render(422, "profile", formData)
 	}
 	formData.Profile["name"] = currentProfile.FirstName
@@ -51,8 +54,15 @@ func (h *ProfileHandler) GetProfile(c echo.Context) error {
 	sess, _ := session.SessionFromContext(c)
 	formData.Values["username"] = sess.Username
 	currentProfile, err := h.ProfileRepo.GetProfile(c.Param("username"))
-	if err != nil {
+	if err != nil && currentProfile.Login != sess.Username {
+		formData.Errors["error"] = err.Error()
 		return c.Render(200, "profile-view", formData)
+	} else if err != nil && currentProfile.Login == sess.Username {
+		formData.Values["currentUserIsOwner"] = sess.Username
+		return c.Render(200, "profile-view", formData)
+	}
+	if sess.Username == currentProfile.Login {
+		formData.Values["currentUserIsOwner"] = sess.Username
 	}
 	formData.Profile["name"] = currentProfile.FirstName
 	formData.Profile["surname"] = currentProfile.SecondName
@@ -109,7 +119,11 @@ func (h *ProfileHandler) EditProfilePOST(c echo.Context) error {
 	}
 	currentProfile, err := h.ProfileRepo.GetProfile(currentSession.Username)
 	if err != nil {
+		formData.Errors["error"] = err.Error()
 		return c.Render(200, "profile-view", formData)
+	}
+	if currentSession.Username == currentProfile.Login {
+		formData.Values["currentUserIsOwner"] = currentSession.Username
 	}
 	formData.Profile["name"] = currentProfile.FirstName
 	formData.Profile["surname"] = currentProfile.SecondName

@@ -29,7 +29,7 @@ func (repo *ProfileRepository) GetProfile(username string) (config.User, error) 
 	currentProfile, err := repo.db.GetProfile(username)
 	if err != nil {
 		log.Printf("ProfileRepo.GetProfile err - %v", err)
-		return config.User{}, err
+		return config.User{Login: username}, err
 	}
 	return currentProfile, nil
 }

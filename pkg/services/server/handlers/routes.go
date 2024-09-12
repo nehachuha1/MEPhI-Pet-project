@@ -42,6 +42,8 @@ func GenerateRoutes(currentCfg *config.Config, sm *session.SessionManager, uh Us
 
 	//marketplace handlers
 	e.GET("/marketplace", mh.GetProducts)
+	e.GET("/marketplace/create", mh.CreateProductGet)
+	e.POST("/marketplace/create", mh.CreateProductPost)
 
 	//not found
 	e.RouteNotFound("/*", func(c echo.Context) error {
