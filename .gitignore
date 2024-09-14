@@ -27,5 +27,10 @@ go.work.sum
 # docker_files
 docker-compose.yml
 
+#images
+*.jpg
+*.jpeg
+*.png
+
 .idea/
 .gitattributes
