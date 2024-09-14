@@ -24,30 +24,32 @@
             <h1 class="main-container-head">MEPhI portal</h1>
             <div class="username">
                 {{ if not .Values.username }}
-                <a class="auth" href="/login" hx-push-url="true">Login</a>
-                <a class="auth" href="/register" hx-push-url="true">Register</a>
+                <a class="auth" style="color: ghostwhite;" href="/login" hx-push-url="true">Login</a>
+                <a class="auth" style="color: ghostwhite;" href="/register" hx-push-url="true">Register</a>
                 {{ else }}
-                <a class="auth" href="/logout" hx-push-url="true">Logout</a>
+                <a class="auth" style="color: ghostwhite;" href="/logout" hx-push-url="true">Logout</a>
                 {{ end }}
             </div>
         </div>
         <div class="main-container-body">
             <div class="main-container-menu">
-                {{ if .Values.username }}
-                <a href="/profile/{{ .Values.username }}" style="text-decoration: none; color: black;">
-                    <div class="menu-endpoint"> <!--replace push url to true-->
-                        <h3>My profile</h3>
+                <div class="main-container-menu-buttons">
+                    {{ if .Values.username }}
+                    <a class="menu-endpoint" href="/profile/{{ .Values.username }} ">
+                        <div class="menu-endpoint"> <!--replace push url to true-->
+                            <h3 style="color: #232323;">My profile</h3>
+                        </div>
+                    </a>
+                    {{ end }}
+                    <div class="menu-endpoint" hx-get="/" hx-target="body" hx-push-url="true" hx-swap="outerHTML">
+                        <h3 style="color: #232323;">Main page</h3>
                     </div>
-                </a>
-                {{ end }}
-                <div class="menu-endpoint" hx-get="/" hx-target="body" hx-push-url="true" hx-swap="outerHTML">
-                    <h3>Main page</h3>
+                    <a class="menu-endpoint" href="/marketplace" style="text-decoration: none; color: black;">
+                        <div class="menu-endpoint">
+                            <h3 style="color: #232323;">Marketplace</h3>
+                        </div>
+                    </a>
                 </div>
-                <a href="/marketplace" style="text-decoration: none; color: black;">
-                    <div class="menu-endpoint">
-                        <h3>Marketplace</h3>
-                    </div>
-                </a>
             </div>
             <div class="main-container-interaction">
                     {{ template "profile" . }}
@@ -82,19 +84,22 @@
     <form hx-post="/profile/create" hx-target=".profile" hx-swap="outerHTML">
         <label for="name">Name</label>
         <input {{if .Values.name}} value="{{ .Values.name }}" {{ end }}
-               type="text" id="name" name="name">
+               type="text" id="name" name="name" placeholder="Ivan">
         <label for="surname">Surname</label>
         <input {{if .Values.surname}} value="{{ .Values.surname }}" {{ end }}
-               type="text" id="surname" name="surname">
+               type="text" id="surname" name="surname" placeholder="Ivanov">
         <label for="sex">Sex</label>
         <input {{if .Values.sex}} value="{{ .Values.sex }}" {{ end }}
-               type="text" id="sex" name="sex">
+               type="text" id="sex" name="sex" placeholder="M или F">
         <label for="age">Age</label>
         <input {{if .Values.age}} value="{{ .Values.age }}" {{ end }}
                type="text" id="age" name="age">
         <label for="address">Address</label>
-        <input {{if .Values.address}} value="{{ .Values.address }}" {{ end }}
-               type="text" id="address" name="address">
+        <select id="address" name="address">
+            <option value="Koshkina 11k1">Koshkina 11k1</option>
+        </select>
+        <label for="room">Room</label>
+        <input id="room" name="room" type="text">
             {{ if .Errors.createError }}
             <div style="color: red">{{ .Errors.createError }}</div>
             {{ end }}
@@ -107,6 +112,11 @@
 {{ block "profile-edit" . }}
     {{ if .Errors.error }}
     <div style="color: red">{{ .Errors.error }}</div>
+    <a href="/profile/{{ .Values.username }}">
+        <div>
+            <h4>Cancel</h4>
+        </div>
+    </a>
     {{ else }}
     <form hx-post="/profile/edit" hx-swap="outerHTML">
         <label for="name">Name</label>
@@ -122,8 +132,11 @@
         <input {{if .Values.age}} value="{{ .Values.age }}" {{ end }}
                type="text" id="age" name="age">
         <label for="address">Address</label>
-        <input {{if .Values.address}} value="{{ .Values.address }}" {{ end }}
-               type="text" id="address" name="address">
+        <select id="address" name="address">
+            <option value="Koshkina 11k1">Koshkina 11k1</option>
+        </select>
+        <label for="room">Room</label>
+        <input id="room" name="room" type="text">
         <button type="submit">Save changes</button>
     </form>
     {{ end }}

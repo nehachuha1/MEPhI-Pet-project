@@ -27,30 +27,32 @@
             <h1 class="main-container-head">MEPhI portal</h1>
             <div class="username">
                 {{ if not .Values.username }}
-                <a class="auth" href="/login" hx-push-url="true">Login</a>
-                <a class="auth" href="/register" hx-push-url="true">Register</a>
+                <a class="auth" style="color: ghostwhite;" href="/login" hx-push-url="true">Login</a>
+                <a class="auth" style="color: ghostwhite;" href="/register" hx-push-url="true">Register</a>
                 {{ else }}
-                <a class="auth" href="/logout" hx-push-url="true">Logout</a>
+                <a class="auth" style="color: ghostwhite;" href="/logout" hx-push-url="true">Logout</a>
                 {{ end }}
             </div>
         </div>
         <div class="main-container-body">
             <div class="main-container-menu">
+                <div class="main-container-menu-buttons">
                     {{ if .Values.username }}
-                    <a href="/profile/{{ .Values.username }} " style="text-decoration: none; color: black;">
+                    <a class="menu-endpoint" href="/profile/{{ .Values.username }} " style="text-decoration: none; color: black; ">
                     <div class="menu-endpoint"> <!--replace push url to true-->
-                        <h3>My profile</h3>
+                        <h3 style="color: #232323;">My profile</h3>
                     </div>
                     </a>
                     {{ end }}
                     <div class="menu-endpoint" hx-get="/" hx-target="body" hx-push-url="true" hx-swap="outerHTML">
-                        <h3>Main page</h3>
+                        <h3 style="color: #232323;">Main page</h3>
                     </div>
-                    <a href="/marketplace" style="text-decoration: none; color: black;">
+                    <a class="menu-endpoint" href="/marketplace" style="text-decoration: none; color: black;">
                         <div class="menu-endpoint">
-                            <h3>Marketplace</h3>
+                            <h3 style="color: #232323;">Marketplace</h3>
                         </div>
                     </a>
+                </div>
             </div>
             <div class="main-container-interaction">
                 {{ if .Values.marketplace }}

@@ -1,5 +1,7 @@
 body {
-    font: Arial, sans-serif;
+    font-family: Corbel, sans-serif !important;
+    font-weight: 400 !important;
+    background-color: rgba(242, 247, 255, 0.32);
     overflow: hidden; /* scroll чтобы вернуть скролл*/
 }
 
@@ -22,17 +24,17 @@ input {
 }
 
 div.main-container {
-    border: 4px dashed red;
 }
 
 h1.main-container-head {
     margin-left: auto;
     margin-right: auto;
     width: 300px;
+    color: ghostwhite;
 }
 
 div.main-container-head {
-    background-color: #c8c8b6;
+    background-color: #012E4A;
     margin-top: -20px;
 }
 
@@ -52,6 +54,7 @@ div.menu-endpoint {
     width: 100%;
     text-align: center;
     cursor: pointer;
+    border-radius: 5%;
 }
 
 div.main-container-body {
@@ -61,28 +64,52 @@ div.main-container-body {
 
 div.main-container-menu {
     width: 150px;
-    background: #e6e7d0;
+    height: 100vh;
+}
+
+div.main-container-menu-buttons {
+    margin-top: 20vh;
     display: flex;
     flex-direction: column;
-    height: 100vh;
+    border-radius: 10%;
+}
+
+div.menu-endpoint:hover {
+    background: rgb(235, 240, 248);
+    border-radius: 5%;
+}
+
+a.menu-endpoint {
+    border-radius: 5%;
+    text-decoration: none;
+}
+
+a.menu-endpoint:hover {
+    background: rgb(235, 240, 248);
+    border-radius: 5%;
 }
 
 div.marketplace-table {
     display: flex;
-    width: auto;
+    flex-direction: row;
+    flex-wrap: wrap;
 }
 
 div.marketplace-item {
-    width: 100px;
-    border: 2px solid darkgray;
-    height: 100px;
+    width: auto;
+    margin-left: 5px;
+    height: 300px;
     cursor: pointer;
     /*TODO: реализовать алгоритм сохранения картинок к айди*/
 }
 
+article.item {
+    width: 100px;
+}
+
 img.marketplace-item {
     vertical-align: top;
-    width: 100px;
+    width: 150px;
     height: auto;
 }
 
@@ -100,7 +127,6 @@ div.edit-button {
 }
 
 div.marketplace-buttons-container {
-    background-color: #ececd3;
     width: 100%;
     display: flex;
     justify-content: right;
@@ -110,9 +136,21 @@ div.marketplace-button {
     text-align: center;
     width: 200px;
     height: 40px;
-    background-color: burlywood;
-    border: 2px solid darkgray;
     cursor: pointer;
+}
+
+a.marketplace-button {
+    text-align: center;
+    width: 200px;
+    height: 40px;
+}
+
+div.marketplace-button:hover {
+    background: rgb(235, 240, 248);
+}
+
+a.marketplace-button:hover {
+    background: rgb(235, 240, 248);
 }
 
 div.main-container-interaction {

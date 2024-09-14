@@ -18,18 +18,27 @@ type ProfileHandler struct {
 
 func (h *ProfileHandler) CreateProfile(c echo.Context) error {
 	currentSession, _ := session.SessionFromContext(c)
+	formData := NewFormData()
 	currentProfile := &config.User{
 		Login:        currentSession.Username,
 		FirstName:    c.FormValue("name"),
 		SecondName:   c.FormValue("surname"),
-		Sex:          c.FormValue("sex"),
-		Address:      c.FormValue("address"),
 		RegisterDate: time.Now().Format("01-02-2006 15:04:05"),
 		EditDate:     time.Now().Format("01-02-2006 15:04:05"),
 	}
-	currentProfile.Age, _ = strconv.Atoi(c.FormValue("age"))
+	age, _ := strconv.Atoi(c.FormValue("age"))
+	if age < 0 || age > 100 {
+		formData.Errors["createError"] = "Invalid age"
+	}
+	sex := c.FormValue("sex")
+	if sex == "F" || sex == "M" {
+		currentProfile.Sex = sex
+	} else {
+		formData.Errors["createError"] = "Invalid sex"
+	}
+	currentProfile.Address = c.FormValue("address") + " | Room: " + c.FormValue("room")
+	currentProfile.Age = age
 	err := h.ProfileRepo.CreateProfile(currentProfile, currentSession.Username)
-	formData := NewFormData()
 	formData.Values["username"] = currentSession.Username
 	if currentSession.Username == currentProfile.Login {
 		formData.Values["currentUserIsOwner"] = currentSession.Username
@@ -93,20 +102,31 @@ func (h *ProfileHandler) EditProfileGET(c echo.Context) error {
 
 func (h *ProfileHandler) EditProfilePOST(c echo.Context) error {
 	currentSession, _ := session.SessionFromContext(c)
+	formData := NewFormData()
+	formData.Values["username"] = currentSession.Username
 	oldData, _ := h.ProfileRepo.GetProfile(currentSession.Username)
 	newData := &config.User{
 		Login:        currentSession.Username,
 		FirstName:    c.FormValue("name"),
 		SecondName:   c.FormValue("surname"),
-		Sex:          c.FormValue("sex"),
-		Address:      c.FormValue("address"),
 		RegisterDate: oldData.RegisterDate,
 		EditDate:     time.Now().Format("01-02-2006 15:04:05"),
 	}
-	newData.Age, _ = strconv.Atoi(c.FormValue("age"))
+	sex := c.FormValue("sex")
+	if sex == "F" || sex == "M" {
+		newData.Sex = sex
+	} else {
+		formData.Errors["error"] = "Invalid sex"
+		return c.Render(422, "profile-edit", formData)
+	}
+	age, _ := strconv.Atoi(c.FormValue("age"))
+	if age < 0 || age > 100 {
+		formData.Errors["error"] = "Invalid age"
+		return c.Render(422, "profile-edit", formData)
+	}
+	newData.Age = age
+	newData.Address = c.FormValue("address") + " | Room: " + c.FormValue("room")
 	err := h.ProfileRepo.EditProfile(currentSession.Username, newData)
-	formData := NewFormData()
-	formData.Values["username"] = currentSession.Username
 	if err != nil {
 		formData.Values["name"] = oldData.FirstName
 		formData.Values["surname"] = oldData.SecondName
