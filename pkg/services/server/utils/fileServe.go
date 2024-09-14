@@ -2,33 +2,37 @@ package utils
 
 import (
 	"container/heap"
+	"fmt"
+	"io"
 	"mime/multipart"
+	"os"
 	"sync"
 )
 
 var (
-	WORKERS    = 5  //количество рабочих
-	WORKERSCAP = 10 //размер очереди каждого рабочего
+	WORKERS    = 1  //количество рабочих
+	WORKERSCAP = 50 //размер очереди каждого рабочего
 )
 
 type Worker struct {
-	files   chan interface{} // канал для файлов
-	pending int              // количество оставшихся изображений
-	index   int              // позиция в куче
+	files   chan *multipart.FileHeader // канал для файлов
+	pending int                        // количество оставшихся изображений
+	index   int                        // позиция в куче
 	wg      *sync.WaitGroup
 }
 
-func generator(out chan interface{}, files []*multipart.FileHeader) {
+func generator(out chan *multipart.FileHeader, files []*multipart.FileHeader) {
 	for _, fl := range files {
 		out <- fl
 	}
+	out <- &multipart.FileHeader{Size: 0}
 }
 
-func (w *Worker) work(done chan *Worker) {
+func (w *Worker) work(done chan *Worker, out chan interface{}) {
 	for {
 		file := <-w.files
 		w.wg.Add(1)
-		serve(file)
+		serve(file, out)
 		w.wg.Done()
 		done <- w
 	}
@@ -62,16 +66,16 @@ func (p *Pool) Pop() interface{} {
 }
 
 type Balancer struct {
-	pool     Pool             // куча рабочих
-	done     chan *Worker     // канал уведомления о завершении для рабочих
-	requests chan interface{} // канал для получения новых заданий
-	flowCtrl chan bool        // канал для PMFC (Poor Man's Flow Control)
-	queue    int              // количество незавершенных заданий, которые были переданы рабочим
+	pool     Pool                       // куча рабочих
+	done     chan *Worker               // канал уведомления о завершении для рабочих
+	requests chan *multipart.FileHeader // канал для получения новых заданий
+	flowCtrl chan bool                  // канал для PMFC (Poor Man's Flow Control)
+	queue    int                        // количество незавершенных заданий, которые были переданы рабочим
 	wg       *sync.WaitGroup
 }
 
-func (b *Balancer) init(in chan interface{}) {
-	b.requests = make(chan interface{})
+func (b *Balancer) init(in chan *multipart.FileHeader, out chan interface{}) {
+	b.requests = make(chan *multipart.FileHeader)
 	b.flowCtrl = make(chan bool)
 	b.done = make(chan *Worker)
 	b.wg = new(sync.WaitGroup)
@@ -88,13 +92,13 @@ func (b *Balancer) init(in chan interface{}) {
 	heap.Init(&b.pool)
 	for i := 0; i < WORKERS; i++ {
 		w := &Worker{
-			files:   make(chan interface{}, WORKERSCAP),
+			files:   make(chan *multipart.FileHeader, WORKERSCAP),
 			pending: 0,
 			index:   0,
 			wg:      b.wg,
 		}
-		go w.work(b.done)     // запустили рабочего
-		heap.Push(&b.pool, w) // и отправили его в кучу
+		go w.work(b.done, out) // запустили рабочего
+		heap.Push(&b.pool, w)  // и отправили его в кучу
 	}
 }
 
@@ -107,7 +111,7 @@ func (b *Balancer) balance(quit chan bool) {
 			b.wg.Wait()  // ждём всех рабочих
 			quit <- true // отправляем сигнал что закончили
 		case file := <-b.requests: // Получено новое задание от Flow controller
-			if file != nil { // если полученный файл не nil
+			if file.Size > 0 { // если полученный файл не nil
 				b.dispatch(file) // dispatch отправляет файл рабочим
 			} else {
 				lastJobs = true // поднимаем флаг завершения
@@ -127,7 +131,7 @@ func (b *Balancer) balance(quit chan bool) {
 }
 
 // функция отправки задания
-func (b *Balancer) dispatch(file interface{}) {
+func (b *Balancer) dispatch(file *multipart.FileHeader) {
 	w := heap.Pop(&b.pool).(*Worker) // берем из кучи самого незагруженного работника
 	w.files <- file                  // отправляем ему задания
 	w.pending++                      // добавляем ему "весу"
@@ -146,24 +150,48 @@ func (b *Balancer) completed(w *Worker) {
 	}
 }
 
-func serve(file interface{}) {
-	file = file.(*multipart.FileHeader)
-
+func serve(file *multipart.FileHeader, out chan interface{}) {
+	src, err := file.Open()
+	if err != nil {
+		fmt.Printf("Err1 - %v", err)
+		out <- err
+		return
+	}
+	defer src.Close()
+	dst, err := os.Create(file.Filename)
+	if err != nil {
+		out <- err
+		return
+	}
+	defer dst.Close()
+	if _, err = io.Copy(dst, src); err != nil {
+		out <- err
+		return
+	}
+	out <- file.Filename
 }
 
-func ServeFiles(files []*multipart.FileHeader) []string {
-	filesChan := make(chan interface{})
+func ServeFiles(files []*multipart.FileHeader) ([]string, error) {
+	filesChan := make(chan *multipart.FileHeader)
 	quit := make(chan bool)
 	balancer := new(Balancer)
-	balancer.init(filesChan)
+	outChan := make(chan interface{})
+	balancer.init(filesChan, outChan)
 
 	go balancer.balance(quit)
 	go generator(filesChan, files)
 
+	returnValues := make([]string, 0)
 	for {
 		select {
+		case photoUrl := <-outChan:
+			if strUrl, ok := photoUrl.(string); ok {
+				returnValues = append(returnValues, strUrl)
+			} else {
+				<-quit
+			}
 		case <-quit:
-			return []string{}
+			return returnValues, nil // Fix
 		}
 	}
 }

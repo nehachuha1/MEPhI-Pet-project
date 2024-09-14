@@ -107,7 +107,7 @@
 
 {{ block "marketplace-form-add" . }}
 <div class="marketplace-form-add-container">
-    <form action="/marketplace/create" method="post" hx-swap="outerHTML">
+    <form action="/marketplace/create" method="post" enctype="multipart/form-data" hx-swap="outerHTML">
         <label for="name">Name</label>
         <input {{if .Values.name}} value="{{ .Values.name }}" {{ end }}
                type="text" id="name" name="name">

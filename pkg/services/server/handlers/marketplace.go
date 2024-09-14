@@ -6,6 +6,7 @@ import (
 	"go.uber.org/zap"
 	"mephiMainProject/pkg/services/marketplace/product"
 	"mephiMainProject/pkg/services/server/session"
+	"mephiMainProject/pkg/services/server/utils"
 	"net/http"
 	"strconv"
 	"time"
@@ -84,25 +85,24 @@ func (mh *MarketplaceHandler) CreateProductPost(c echo.Context) error {
 		EditDate:      time.Now().Format("01-02-2006 15:04:05"),
 		IsActive:      true,
 		Views:         1,
-		//PhotoUrls:     []string{"123", "233", "556"}, TODO: перенести заполнение поля в сервис по обработке файлов
+		PhotoUrls:     []string{"123", "233", "556"},
 	}
 	price, err := strconv.Atoi(c.FormValue("price"))
-	if price < 0 || price > 1_000_000 {
-		formData.Errors["error"] = "Invalid price"
-		return c.Render(422, "marketplace-form-add", formData)
-	}
 	newProduct.Price = int64(price)
 
-	//photoUrls := utils.ServeFiles()
+	// обработка фотографий при загрузке
 	form, err := c.MultipartForm()
 	if err != nil {
 		formData.Errors["error"] = err.Error()
 		return c.Render(422, "marketplace-form-add", formData)
 	}
 	files := form.File["files"]
-	for _, file := range files {
-
+	photoUrls, err := utils.ServeFiles(files)
+	if err != nil {
+		formData.Errors["error"] = err.Error()
+		return c.Render(422, "marketplace-form-add", formData)
 	}
+	newProduct.PhotoUrls = photoUrls
 
 	_, err = mh.MarketPlaceManager.CreateProduct(context.Background(), newProduct)
 	if err != nil {

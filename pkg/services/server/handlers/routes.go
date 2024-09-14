@@ -15,6 +15,7 @@ func GenerateRoutes(currentCfg *config.Config, sm *session.SessionManager, uh Us
 
 	//static connection
 	e.Renderer = config.NewTemplates()
+	e.Static("/", "public")
 	e.Static("/views/css", "views/css")
 
 	e.GET("/", func(c echo.Context) error {

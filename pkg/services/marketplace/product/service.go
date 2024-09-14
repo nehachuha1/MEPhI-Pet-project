@@ -83,7 +83,7 @@ func (ms *MarketplaceService) CreateProduct(ctx context.Context, p *Product) (*R
 		Views:         p.Views,
 		PhotoURLs:     p.GetPhotoUrls(),
 	}
-	lastId, err := ms.Database.CreateProduct(tempVar)
+	err := ms.Database.CreateProduct(tempVar)
 	if err != nil {
 		log.Printf("Create product err in marketplace module - %v", err)
 		return &Response{
@@ -92,7 +92,7 @@ func (ms *MarketplaceService) CreateProduct(ctx context.Context, p *Product) (*R
 		}, err
 	}
 
-	return &Response{Code: 200, Message: strconv.Itoa(lastId)}, nil
+	return &Response{Code: 200, Message: "Success"}, nil
 }
 
 func (ms *MarketplaceService) EditProduct(ctx context.Context, p *Product) (*Response, error) {

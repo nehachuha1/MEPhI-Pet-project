@@ -93,6 +93,7 @@ div.marketplace-table {
     display: flex;
     flex-direction: row;
     flex-wrap: wrap;
+    overflow: scroll !important;
 }
 
 div.marketplace-item {

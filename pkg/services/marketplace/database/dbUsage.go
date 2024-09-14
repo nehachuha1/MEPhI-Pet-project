@@ -73,29 +73,18 @@ func (db *DatabaseORM) GetProduct(productID string) (config.Product, error) {
 	return currentProduct, nil
 }
 
-func (db *DatabaseORM) CreateProduct(product config.Product) (int, error) {
+func (db *DatabaseORM) CreateProduct(product config.Product) error {
 	_, err := db.Pgx.DB.Exec("INSERT INTO public.products(name, owner_username, price, description, create_date, edit_date, is_active, views, photo_urls) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9);",
 		&product.Name, &product.OwnerUsername, &product.Price, &product.Description, &product.CreateDate,
 		&product.EditDate, &product.IsActive, &product.Views, &product.PhotoURLs,
 	)
+
 	if err != nil {
 		log.Printf("Create product err - %v", err)
-		return 0, err
+		return err
 	}
 
-	row, err := db.Pgx.DB.Query("SELECT id FROM public.products WHERE name=$1; and owner_username=$2", &product.Name, &product.OwnerUsername)
-	if err != nil {
-		return 0, err
-	}
-	var currentId struct{ ID int }
-	for row.Next() {
-		err = row.Scan(&currentId.ID)
-		if err != nil {
-			return 0, err
-		}
-	}
-
-	return currentId.ID, nil
+	return nil
 }
 
 func (db *DatabaseORM) EditProduct(product config.Product, productID string) error {
