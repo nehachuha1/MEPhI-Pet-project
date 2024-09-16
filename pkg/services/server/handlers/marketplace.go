@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"context"
+	"fmt"
 	"github.com/labstack/echo/v4"
 	"go.uber.org/zap"
 	"mephiMainProject/pkg/services/marketplace/product"
@@ -9,6 +10,7 @@ import (
 	"mephiMainProject/pkg/services/server/utils"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -17,12 +19,40 @@ type MarketplaceHandler struct {
 	MarketPlaceManager product.MarketplaceServiceClient
 }
 
+func (mh *MarketplaceHandler) GetProduct(c echo.Context) error {
+	formData := NewFormData()
+
+	currentUser, err := session.SessionFromContext(c)
+	if err != nil {
+		formData.Errors["error"] = err.Error()
+		return c.Render(422, "marketplace-item-page", formData)
+	}
+	formData.Values["username"] = currentUser.Username
+
+	productId := c.Param("id")
+	currentProduct, err := mh.MarketPlaceManager.GetProduct(context.Background(), &product.ProductID{ProductID: productId})
+	if err != nil {
+		formData.Errors["error"] = err.Error()
+		return c.Render(422, "marketplace-item-page", formData)
+	}
+	if currentProduct.OwnerUsername == currentUser.Username {
+		formData.Values["currentUserIsOwner"] = "1"
+	}
+	formData.Values["id"] = productId
+	formData.Values["name"] = currentProduct.Name
+	formData.Values["description"] = currentProduct.Description
+	formData.Values["price"] = strconv.Itoa(int(currentProduct.Price))
+	formData.Values["photoUrls"] = strings.Join(currentProduct.PhotoUrls, " | ")
+
+	return c.Render(http.StatusOK, "marketplace-item-page", formData)
+}
+
 func (mh *MarketplaceHandler) GetProducts(c echo.Context) error {
 	formData := NewFormData()
 	allProducts, err := mh.MarketPlaceManager.GetAllProducts(context.Background(), &product.Nothing{})
 	if err != nil {
 		formData.Errors["error"] = err.Error()
-		return c.Render(42, "marketplace-view", formData)
+		return c.Render(422, "marketplace-view", formData)
 	}
 
 	currentSession, err := session.SessionFromContext(c)
@@ -35,6 +65,10 @@ func (mh *MarketplaceHandler) GetProducts(c echo.Context) error {
 	formData.Products = allProducts.GetProducts()
 	formData.Values["marketplace"] = "marketplace"
 	return c.Render(http.StatusOK, "marketplace-view", formData)
+}
+
+func (mh *MarketplaceHandler) DeleteProduct(c echo.Context) error {
+	return c.String(http.StatusOK, "Delete product realization...")
 }
 
 func (mh *MarketplaceHandler) GetUserProducts(c echo.Context) error {
@@ -99,6 +133,7 @@ func (mh *MarketplaceHandler) CreateProductPost(c echo.Context) error {
 	files := form.File["files"]
 	photoUrls, err := utils.ServeFiles(files)
 	if err != nil {
+		fmt.Printf("ServeFiels err - %v", err)
 		formData.Errors["error"] = err.Error()
 		return c.Render(422, "marketplace-form-add", formData)
 	}
@@ -106,6 +141,7 @@ func (mh *MarketplaceHandler) CreateProductPost(c echo.Context) error {
 
 	_, err = mh.MarketPlaceManager.CreateProduct(context.Background(), newProduct)
 	if err != nil {
+		fmt.Printf("CreateProduct err - %v", err)
 		formData.Errors["error"] = err.Error()
 		return c.Render(422, "marketplace-form-add", formData)
 	}

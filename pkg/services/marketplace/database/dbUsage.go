@@ -5,6 +5,7 @@ import (
 	_ "github.com/jackc/pgx/v5/stdlib"
 	"log"
 	"mephiMainProject/pkg/services/marketplace/config"
+	"strings"
 )
 
 type DatabaseORM struct {
@@ -62,14 +63,17 @@ func (db *DatabaseORM) GetProduct(productID string) (config.Product, error) {
 	}
 
 	var currentProduct config.Product
+	var photoUrls string
 	for rows.Next() {
 		err = rows.Scan(&currentProduct.Name, &currentProduct.OwnerUsername, &currentProduct.Price, &currentProduct.Description, &currentProduct.CreateDate,
-			&currentProduct.EditDate, &currentProduct.IsActive, &currentProduct.Views, &currentProduct.PhotoURLs)
+			&currentProduct.EditDate, &currentProduct.IsActive, &currentProduct.Views, &photoUrls)
 		if err != nil {
 			log.Printf("Error while scanning current product - %v", err)
 			return config.Product{}, err
 		}
 	}
+	normalizedPhotoURLs := strings.Split(photoUrls[1:len(photoUrls)-1], ",")
+	currentProduct.PhotoURLs = normalizedPhotoURLs
 	return currentProduct, nil
 }
 
