@@ -102,7 +102,6 @@ div.marketplace-item {
     margin-left: 5px;
     height: 300px;
     cursor: pointer;
-    /*TODO: реализовать алгоритм сохранения картинок к айди*/
 }
 
 article.item {

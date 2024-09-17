@@ -38,6 +38,7 @@ func (ms *MarketplaceService) GetProduct(ctx context.Context, pID *ProductID) (*
 		IsActive:      currentProduct.IsActive,
 		Views:         currentProduct.Views,
 		PhotoUrls:     currentProduct.PhotoURLs,
+		MainPhoto:     currentProduct.MainPhoto,
 	}
 
 	return returnProduct, nil
@@ -64,6 +65,7 @@ func (ms *MarketplaceService) GetAllProducts(ctx context.Context, nth *Nothing) 
 			IsActive:      elem.IsActive,
 			Views:         elem.Views,
 			PhotoUrls:     elem.PhotoURLs,
+			MainPhoto:     elem.MainPhoto,
 		}
 		returnProducts.Products = append(returnProducts.Products, currentProduct)
 	}
@@ -82,6 +84,7 @@ func (ms *MarketplaceService) CreateProduct(ctx context.Context, p *Product) (*R
 		IsActive:      p.IsActive,
 		Views:         p.Views,
 		PhotoURLs:     p.GetPhotoUrls(),
+		MainPhoto:     p.MainPhoto,
 	}
 	err := ms.Database.CreateProduct(tempVar)
 	if err != nil {
@@ -107,6 +110,7 @@ func (ms *MarketplaceService) EditProduct(ctx context.Context, p *Product) (*Res
 		IsActive:      p.IsActive,
 		Views:         p.Views,
 		PhotoURLs:     p.PhotoUrls,
+		MainPhoto:     p.MainPhoto,
 	}
 	err := ms.Database.EditProduct(currentProduct, strconv.FormatInt(p.Id, 10))
 

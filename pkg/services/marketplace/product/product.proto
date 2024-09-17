@@ -15,6 +15,7 @@ message Product {
   bool is_active = 8;
   int64 views = 9;
   repeated string photo_urls = 10;
+  string main_photo = 11;
 }
 
 message AllProducts {

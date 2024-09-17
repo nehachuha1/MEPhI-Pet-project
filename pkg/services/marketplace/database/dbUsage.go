@@ -34,28 +34,30 @@ func NewDBUsage(cfg *config.Config) *DatabaseORM {
 }
 
 func (db *DatabaseORM) GetAllProducts() ([]config.Product, error) {
-	rows, err := db.Pgx.DB.Query("SELECT id, name, owner_username, price, description, create_date, edit_date, is_active, views FROM public.products;")
+	rows, err := db.Pgx.DB.Query("SELECT id, name, owner_username, price, description, create_date, edit_date, is_active, views, photo_urls, main_photo FROM public.products;")
 	if err != nil {
 		log.Printf("GetAllProducts err - %v\n", err)
 		return []config.Product{}, err
 	}
 
 	var allProducts []config.Product
+	var photoUrls string
 	for rows.Next() {
 		var currentProduct config.Product
 		err = rows.Scan(&currentProduct.ID, &currentProduct.Name, &currentProduct.OwnerUsername, &currentProduct.Price, &currentProduct.Description, &currentProduct.CreateDate,
-			&currentProduct.EditDate, &currentProduct.IsActive, &currentProduct.Views)
+			&currentProduct.EditDate, &currentProduct.IsActive, &currentProduct.Views, &photoUrls, &currentProduct.MainPhoto)
 		if err != nil {
 			log.Printf("Error while scanning current product - %v\n", err)
 		}
-
+		normalizedPhotoURLs := strings.Split(photoUrls[1:len(photoUrls)-1], ",")
+		currentProduct.PhotoURLs = normalizedPhotoURLs
 		allProducts = append(allProducts, currentProduct)
 	}
 	return allProducts, nil
 }
 
 func (db *DatabaseORM) GetProduct(productID string) (config.Product, error) {
-	rows, err := db.Pgx.DB.Query("SELECT name, owner_username, price, description, create_date, edit_date, is_active, views, photo_urls FROM public.products WHERE id=$1;",
+	rows, err := db.Pgx.DB.Query("SELECT name, owner_username, price, description, create_date, edit_date, is_active, views, photo_urls, main_photo FROM public.products WHERE id=$1;",
 		productID)
 	if err != nil {
 		log.Printf("GetAllProducts err - %v\n", err)
@@ -66,7 +68,7 @@ func (db *DatabaseORM) GetProduct(productID string) (config.Product, error) {
 	var photoUrls string
 	for rows.Next() {
 		err = rows.Scan(&currentProduct.Name, &currentProduct.OwnerUsername, &currentProduct.Price, &currentProduct.Description, &currentProduct.CreateDate,
-			&currentProduct.EditDate, &currentProduct.IsActive, &currentProduct.Views, &photoUrls)
+			&currentProduct.EditDate, &currentProduct.IsActive, &currentProduct.Views, &photoUrls, &currentProduct.MainPhoto)
 		if err != nil {
 			log.Printf("Error while scanning current product - %v", err)
 			return config.Product{}, err
@@ -78,9 +80,9 @@ func (db *DatabaseORM) GetProduct(productID string) (config.Product, error) {
 }
 
 func (db *DatabaseORM) CreateProduct(product config.Product) error {
-	_, err := db.Pgx.DB.Exec("INSERT INTO public.products(name, owner_username, price, description, create_date, edit_date, is_active, views, photo_urls) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9);",
+	_, err := db.Pgx.DB.Exec("INSERT INTO public.products(name, owner_username, price, description, create_date, edit_date, is_active, views, photo_urls, main_photo) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10);",
 		&product.Name, &product.OwnerUsername, &product.Price, &product.Description, &product.CreateDate,
-		&product.EditDate, &product.IsActive, &product.Views, &product.PhotoURLs,
+		&product.EditDate, &product.IsActive, &product.Views, &product.PhotoURLs, &product.MainPhoto,
 	)
 
 	if err != nil {

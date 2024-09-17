@@ -17,6 +17,7 @@ func GenerateRoutes(currentCfg *config.Config, sm *session.SessionManager, uh Us
 	e.Renderer = config.NewTemplates()
 	e.Static("/", "public")
 	e.Static("/views/css", "views/css")
+	e.Static("/data/img", "data/img")
 
 	e.GET("/", func(c echo.Context) error {
 		formData := NewFormData()

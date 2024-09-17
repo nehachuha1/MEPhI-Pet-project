@@ -2,27 +2,62 @@ package utils
 
 import (
 	"fmt"
-	"io"
+	"github.com/nfnt/resize"
+	"image"
+	"image/gif"
+	"image/jpeg"
+	"image/png"
 	"mime/multipart"
 	"os"
 )
 
-func serve(file *multipart.FileHeader) (string, error) {
-	src, err := file.Open()
+func encodeImage(filename string, img image.Image, format string) error {
+	file, err := os.Create("./data/img/" + filename)
 	if err != nil {
-		fmt.Printf("Err1 - %v", err)
-		return "", err
+		return err
 	}
-	defer src.Close()
-	dst, err := os.Create("./data/img/" + file.Filename)
-	if err != nil {
-		return "", err
-	}
-	defer dst.Close()
-	if _, err = io.Copy(dst, src); err != nil {
-		return "", err
-	}
+	defer file.Close()
 
+	switch format {
+	case "jpeg", "jpg":
+		return jpeg.Encode(file, img, nil)
+	case "png":
+		return png.Encode(file, img)
+	case "gif":
+		return gif.Encode(file, img, nil)
+	default:
+		return fmt.Errorf("unsupported format: %s", format)
+	}
+}
+
+func decodeImage(fl *multipart.FileHeader) (image.Image, string, error) {
+	file, err := fl.Open()
+	if err != nil {
+		return nil, "", err
+	}
+	defer file.Close()
+
+	img, format, err := image.Decode(file)
+	if err != nil {
+		return nil, "", err
+	}
+	return img, format, nil
+}
+
+func resizeImage(img image.Image, maxWidth, maxHeight uint) image.Image {
+	return resize.Resize(maxWidth, maxHeight, img, resize.Lanczos3)
+}
+
+func serve(file *multipart.FileHeader) (string, error) {
+	img, format, err := decodeImage(file)
+	if err != nil {
+		return "", err
+	}
+	newImg := resizeImage(img, 150, 150)
+	err = encodeImage(file.Filename, newImg, format)
+	if err != nil {
+		return "", err
+	}
 	return file.Filename, nil
 }
 

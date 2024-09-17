@@ -13,6 +13,7 @@ type Product struct {
 	IsActive      bool
 	Views         int64
 	PhotoURLs     []string
+	MainPhoto     string
 }
 
 type PostgreDB struct {

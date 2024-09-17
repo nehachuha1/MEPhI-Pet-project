@@ -97,7 +97,7 @@
 {{ block "marketplace-item" .}}
 <a class="menu-endpoint" href="/marketplace/product/{{ .Id }}" style="text-decoration: none; color: black;">
     <div class="marketplace-item" id="product-{{ .Id }}">
-        <img class="marketplace-item" src="https://home.mephi.ru/system/users/avatars/000/029/479/medium/IMG_20230811_123751.jpg">
+        <img class="marketplace-item" src="/data/img/{{ .MainPhoto }}">
         <div>
             <article class="item">{{ .Name }}</article>
             <article class="item">{{ .Price }}₽</article>

@@ -42,7 +42,9 @@ func (mh *MarketplaceHandler) GetProduct(c echo.Context) error {
 	formData.Values["name"] = currentProduct.Name
 	formData.Values["description"] = currentProduct.Description
 	formData.Values["price"] = strconv.Itoa(int(currentProduct.Price))
+	formData.Values["mainPhoto"] = currentProduct.MainPhoto
 	formData.Values["photoUrls"] = strings.Join(currentProduct.PhotoUrls, " | ")
+	formData.Values["mainPhoto"] = currentProduct.PhotoUrls[0] // TODO: в шаблон картинки будут передаваться в слайсе чтобы проитерироваться по ним
 
 	return c.Render(http.StatusOK, "marketplace-item-page", formData)
 }
@@ -119,7 +121,6 @@ func (mh *MarketplaceHandler) CreateProductPost(c echo.Context) error {
 		EditDate:      time.Now().Format("01-02-2006 15:04:05"),
 		IsActive:      true,
 		Views:         1,
-		PhotoUrls:     []string{"123", "233", "556"},
 	}
 	price, err := strconv.Atoi(c.FormValue("price"))
 	newProduct.Price = int64(price)
@@ -138,6 +139,7 @@ func (mh *MarketplaceHandler) CreateProductPost(c echo.Context) error {
 		return c.Render(422, "marketplace-form-add", formData)
 	}
 	newProduct.PhotoUrls = photoUrls
+	newProduct.MainPhoto = photoUrls[0]
 
 	_, err = mh.MarketPlaceManager.CreateProduct(context.Background(), newProduct)
 	if err != nil {

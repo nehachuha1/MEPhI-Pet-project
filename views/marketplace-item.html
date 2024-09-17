@@ -64,12 +64,14 @@
 </html>
 {{ end }}
 
+<!--TODO: сделать цикл пробежки по картинкам, чтобы создавались одинаковые фотки-->
 {{ block "marketplace-item-page-data" . }}
 <div class="marketplace-item-page">
     <div class="marketplace-item-page-header">
         <div id="item-name">{{ .Values.name }}</div><br>
     </div>
     <div class="marketplace-item-page-body">
+        <img src="/data/img/{{ .Values.mainPhoto }} ">
         <div id="item-description" {{ .Values.description }}></div><br>
         <div id="item-photoUrls"> {{ .Values.photoUrls }} </div>
         <div id="item-price">{{ .Values.price }}₽</div>
