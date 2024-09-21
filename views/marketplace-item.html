@@ -52,7 +52,7 @@
             </div>
         </div>
         <div class="main-container-interaction">
-            {{ template "marketplace-buttons" . }}
+            {{ template "marketplace-item-page-buttons" . }}
             {{ template "marketplace-item-page-data" . }}
         </div>
     </div>
@@ -72,13 +72,13 @@
     </div>
     <div class="marketplace-item-page-body">
         <img src="/data/img/{{ .Values.mainPhoto }} ">
-        <div id="item-description" {{ .Values.description }}></div><br>
+        <div id="item-description">{{ .Values.description }}</div><br>
         <div id="item-photoUrls"> {{ .Values.photoUrls }} </div>
         <div id="item-price">{{ .Values.price }}₽</div>
     </div>
     <div class="marketplace-item-page-footer">
         {{ if .Values.currentUserIsOwner }}
-        <a hx-delete="/marketplace/product/{{ .Values.id }}/delete">
+        <a class="delete-product" hx-delete="/marketplace/product/{{ .Values.id }}/delete" hx-swap="outerHTML" hx-target=".delete-product">
             <button type="button">Delete product</button>
         </a>
         {{ end }}
@@ -88,5 +88,21 @@
         <div style="color: red">{{ .Errors.createError }}</div>
         {{ end }}
     </div>
+</div>
+{{ end }}
+
+{{ block "marketplace-item-page-buttons" . }}
+<div class="marketplace-buttons-container">
+    <div class="marketplace-button" hx-get="/marketplace/find">
+        <h3>Find product</h3>
+    </div>
+    <div class="marketplace-button" hx-get="/marketplace/create" hx-swap="innerHTML" hx-target=".marketplace-item-page">
+        <h3>Add product</h3>
+    </div>
+    <a class="marketplace-button" href="/marketplace/products/{{ .Values.username }}" style="text-decoration: none; color: black;">
+        <div>
+            <h3>My products</h3>
+        </div>
+    </a>
 </div>
 {{ end }}

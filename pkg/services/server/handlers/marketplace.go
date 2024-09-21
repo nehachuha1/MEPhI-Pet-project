@@ -6,6 +6,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"go.uber.org/zap"
 	"mephiMainProject/pkg/services/marketplace/product"
+	"mephiMainProject/pkg/services/server/config"
 	"mephiMainProject/pkg/services/server/session"
 	"mephiMainProject/pkg/services/server/utils"
 	"net/http"
@@ -16,6 +17,7 @@ import (
 
 type MarketplaceHandler struct {
 	Logger             *zap.SugaredLogger
+	CurrentCfg         *config.Config
 	MarketPlaceManager product.MarketplaceServiceClient
 }
 
@@ -44,7 +46,6 @@ func (mh *MarketplaceHandler) GetProduct(c echo.Context) error {
 	formData.Values["price"] = strconv.Itoa(int(currentProduct.Price))
 	formData.Values["mainPhoto"] = currentProduct.MainPhoto
 	formData.Values["photoUrls"] = strings.Join(currentProduct.PhotoUrls, " | ")
-	formData.Values["mainPhoto"] = currentProduct.PhotoUrls[0] // TODO: в шаблон картинки будут передаваться в слайсе чтобы проитерироваться по ним
 
 	return c.Render(http.StatusOK, "marketplace-item-page", formData)
 }
@@ -70,7 +71,34 @@ func (mh *MarketplaceHandler) GetProducts(c echo.Context) error {
 }
 
 func (mh *MarketplaceHandler) DeleteProduct(c echo.Context) error {
-	return c.String(http.StatusOK, "Delete product realization...")
+	currentSession, err := session.SessionFromContext(c)
+	formData := NewFormData()
+	if err != nil {
+		formData.Errors["error"] = err.Error()
+		return c.Render(422, "marketplace-item-page-data", formData)
+	}
+	productId := c.Param("id")
+	productFromDB, err := mh.MarketPlaceManager.GetProduct(context.Background(), &product.ProductID{ProductID: productId})
+	if err != nil {
+		formData.Errors["error"] = err.Error()
+		return c.Render(422, "marketplace-item-page-data", formData)
+	}
+	if productFromDB.OwnerUsername == currentSession.Username {
+		_, err = mh.MarketPlaceManager.DeleteProduct(context.Background(), &product.ProductID{ProductID: productId})
+		if err != nil {
+			formData.Errors["error"] = err.Error()
+			return c.Render(422, "marketplace-item-page-data", formData)
+		}
+		err = utils.DeleteFile(productFromDB.PhotoUrls)
+		if err != nil {
+			formData.Errors["error"] = err.Error()
+			return c.Render(422, "marketplace-item-page-data", formData)
+		}
+	} else {
+		formData.Errors["error"] = "You aren't owner of this product"
+		return c.Render(422, "marketplace-item-page-data", formData)
+	}
+	return c.String(http.StatusOK, "Successfully deleted product")
 }
 
 func (mh *MarketplaceHandler) GetUserProducts(c echo.Context) error {
@@ -125,12 +153,12 @@ func (mh *MarketplaceHandler) CreateProductPost(c echo.Context) error {
 	price, err := strconv.Atoi(c.FormValue("price"))
 	newProduct.Price = int64(price)
 
-	// обработка фотографий при загрузке
 	form, err := c.MultipartForm()
 	if err != nil {
 		formData.Errors["error"] = err.Error()
 		return c.Render(422, "marketplace-form-add", formData)
 	}
+
 	files := form.File["files"]
 	photoUrls, err := utils.ServeFiles(files)
 	if err != nil {

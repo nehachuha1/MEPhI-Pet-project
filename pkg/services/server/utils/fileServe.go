@@ -7,12 +7,13 @@ import (
 	"image/gif"
 	"image/jpeg"
 	"image/png"
+	"mephiMainProject/pkg/services/server/database"
 	"mime/multipart"
 	"os"
 )
 
 func encodeImage(filename string, img image.Image, format string) error {
-	file, err := os.Create("./data/img/" + filename)
+	file, err := os.Create("./data/img/" + filename + "." + format)
 	if err != nil {
 		return err
 	}
@@ -54,11 +55,12 @@ func serve(file *multipart.FileHeader) (string, error) {
 		return "", err
 	}
 	newImg := resizeImage(img, 150, 150)
-	err = encodeImage(file.Filename, newImg, format)
+	newImageName := database.RandStringRunes(16)
+	err = encodeImage(newImageName, newImg, format)
 	if err != nil {
 		return "", err
 	}
-	return file.Filename, nil
+	return newImageName + "." + format, nil
 }
 
 func ServeFiles(files []*multipart.FileHeader) ([]string, error) {
@@ -71,4 +73,14 @@ func ServeFiles(files []*multipart.FileHeader) ([]string, error) {
 		returnValues = append(returnValues, fl)
 	}
 	return returnValues, nil
+}
+
+func DeleteFile(filenames []string) error {
+	for _, filename := range filenames {
+		err := os.Remove("./data/img/" + filename)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
