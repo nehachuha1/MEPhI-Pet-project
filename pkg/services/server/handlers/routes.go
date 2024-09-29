@@ -18,6 +18,7 @@ func GenerateRoutes(currentCfg *config.Config, sm *session.SessionManager, uh Us
 	e.Static("/", "public")
 	e.Static("/views/css", "views/css")
 	e.Static("/data/img", "data/img")
+	e.Static("/views/js/", "views/js")
 
 	e.GET("/", func(c echo.Context) error {
 		formData := NewFormData()
@@ -50,6 +51,10 @@ func GenerateRoutes(currentCfg *config.Config, sm *session.SessionManager, uh Us
 	e.GET("/marketplace", mh.GetProducts)
 	e.GET("/marketplace/create", mh.CreateProductGet)
 	e.POST("/marketplace/create", mh.CreateProductPost)
+
+	// Orders
+	e.GET("/marketplace/orders/", mh.GetOrders)
+	e.GET("/order/new", mh.OpenModalForm)
 
 	//not found
 	e.RouteNotFound("/*", func(c echo.Context) error {

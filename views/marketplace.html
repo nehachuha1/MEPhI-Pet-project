@@ -66,15 +66,18 @@
 
 {{ block "marketplace-buttons" . }}
     <div class="marketplace-buttons-container">
-        <div class="marketplace-button" hx-get="/marketplace/find">
-            <h3>Find product</h3>
-        </div>
         <div class="marketplace-button" hx-get="/marketplace/create" hx-swap="innerHTML" hx-target=".marketplace-table">
             <h3>Add product</h3>
         </div>
         <a class="marketplace-button" href="/marketplace/products/{{ .Values.username }}" style="text-decoration: none; color: black;">
             <div>
                 <h3>My products</h3>
+            </div>
+        </a>
+        <a class="marketplace-button" href="/marketplace/orders/"
+           style="text-decoration: none; color: black;">
+            <div>
+                <h3>My orders</h3>
             </div>
         </a>
     </div>
@@ -95,12 +98,12 @@
 {{ end }}
 
 {{ block "marketplace-item" .}}
-<a class="menu-endpoint" href="/marketplace/product/{{ .Id }}" style="text-decoration: none; color: black;">
+<a class="menu-endpoint" href="/marketplace/product/{{ .Id }}" style="text-decoration: none; color: black; height: 250px">
     <div class="marketplace-item" id="product-{{ .Id }}">
         <img class="marketplace-item" src="/data/img/{{ .MainPhoto }}">
-        <div>
-            <article class="item">{{ .Name }}</article>
-            <article class="item">{{ .Price }}₽</article>
+        <div class="item-info">
+            <div class="item" style="padding-top: 5%; font-size: 18px">{{ .Name }}</div>
+            <div class="item" style="padding-top: 30%">{{ .Price }}₽</div>
         </div>
     </div>
 </a>
@@ -109,16 +112,16 @@
 {{ block "marketplace-form-add" . }}
 <div class="marketplace-form-add-container">
     <form action="/marketplace/create" method="post" enctype="multipart/form-data" hx-swap="outerHTML">
-        <label for="name">Name</label>
+        <label for="name" style="font-size: 24px">Name</label>
         <input {{if .Values.name}} value="{{ .Values.name }}" {{ end }}
-               type="text" id="name" name="name">
-        <label for="price">Price</label>
+               type="text" id="name" minlength="4" name="name" placeholder="Название товара (от 4 символов)" style="width: 300px; font-size: 18px" required>
+        <label for="price" style="font-size: 24px">Price</label>
         <input {{if .Values.price}} value="{{ .Values.price}}" {{ end }}
-               type="text" id="price" name="price">
-        <label for="description">Description</label>
-        <textarea id="description" name="description" rows="5" cols="30" style="resize: none"></textarea>
-        <label for="file">Product photo</label>
-        <input type="file" id="file" name="files" multiple><br><br>
+               type="number" min="1" max="100000" id="price" name="price" style="font-size: 18px" required>
+        <label for="description" style="font-size: 24px">Description</label>
+        <textarea id="description" name="description" minlength="4" placeholder="Введите описание товара" rows="5" cols="30" style="resize: none; font-size: 18px" required></textarea>
+        <label for="file" style="font-size: 24px">Product photo</label>
+        <input type="file" id="file" name="files" multiple required><br><br>
         <span class="error">{{ .Errors.imageUploadError }}</span>
         <button type="submit">Save changes</button>
         <div>

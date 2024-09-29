@@ -1,6 +1,6 @@
 {{block "profile-view" .}}
-    <!DOCTYPE html>
-    <html lang="en">
+<!DOCTYPE html>
+<html lang="en">
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -64,7 +64,7 @@
 {{ end }}
 
 {{ block "profile" . }}
-<div class="profile">
+<div class="profile" style="width: 50vw">
     {{ if .Errors.error }}
     <div style="color: red">{{ .Errors.error }}</div>
     {{ else if .Profile.name }}
@@ -82,24 +82,24 @@
         {{ end }}
     {{ else }}
     <form hx-post="/profile/create" hx-target=".profile" hx-swap="outerHTML">
-        <label for="name">Name</label>
+        <label for="name" style="font-size: 24px">Name</label>
         <input {{if .Values.name}} value="{{ .Values.name }}" {{ end }}
-               type="text" id="name" name="name" placeholder="Ivan">
-        <label for="surname">Surname</label>
+               type="text" id="name" name="name" placeholder="Ivan" style="width: 300px; font-size: 18px">
+        <label for="surname" style="font-size: 24px">Surname</label>
         <input {{if .Values.surname}} value="{{ .Values.surname }}" {{ end }}
-               type="text" id="surname" name="surname" placeholder="Ivanov">
-        <label for="sex">Sex</label>
+               type="text" id="surname" name="surname" placeholder="Ivanov" style="width: 300px; font-size: 18px">
+        <label for="sex" style="font-size: 24px">Sex</label>
         <input {{if .Values.sex}} value="{{ .Values.sex }}" {{ end }}
-               type="text" id="sex" name="sex" placeholder="M или F">
-        <label for="age">Age</label>
+               type="text" id="sex" name="sex" placeholder="M или F" style="width: 100px; font-size: 18px">
+        <label for="age" style="font-size: 24px">Age</label>
         <input {{if .Values.age}} value="{{ .Values.age }}" {{ end }}
-               type="text" id="age" name="age">
-        <label for="address">Address</label>
-        <select id="address" name="address">
+               type="text" id="age" name="age" style="width: 100px; font-size: 18px">
+        <label for="address" style="font-size: 24px">Address</label>
+        <select id="address" name="address" style="font-size: 18px">
             <option value="Koshkina 11k1">Koshkina 11k1</option>
         </select>
-        <label for="room">Room</label>
-        <input id="room" name="room" type="text">
+        <label for="room" style="font-size: 24px">Room</label>
+        <input id="room" name="room" type="text" style="width: 300px; font-size: 18px">
             {{ if .Errors.createError }}
             <div style="color: red">{{ .Errors.createError }}</div>
             {{ end }}

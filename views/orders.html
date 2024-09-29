@@ -1,0 +1,72 @@
+{{block "orders-view" .}}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../../views/css/style.css">
+    <script src="https://unpkg.com/htmx.org@2.0.2" integrity="sha384-Y7hw+L/jvKeWIRRkqWYfPcvVxHzVzn5REgzbawhxAuQGwX1XWe70vji+VSeHOThJ" crossorigin="anonymous"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", (event) => {
+            document.body.addEventListener('htmx:beforeSwap', function (evt) {
+                if (evt.detail.xhr.status === 422) {
+                    evt.detail.shouldSwap = true;
+                    evt.detail.isError = false;
+                }
+            });
+        })
+    </script>
+    <title>Main page</title>
+</head>
+<body>
+<div class="main-container">
+    <div class="main-container-head">
+        <h1 class="main-container-head">MEPhI portal</h1>
+        <div class="username">
+            {{ if not .Values.username }}
+            <a class="auth" style="color: ghostwhite;" href="/login" hx-push-url="true">Login</a>
+            <a class="auth" style="color: ghostwhite;" href="/register" hx-push-url="true">Register</a>
+            {{ else }}
+            <a class="auth" style="color: ghostwhite;" href="/logout" hx-push-url="true">Logout</a>
+            {{ end }}
+        </div>
+    </div>
+    <div class="main-container-body">
+        <div class="main-container-menu">
+            <div class="main-container-menu-buttons">
+                {{ if .Values.username }}
+                <a class="menu-endpoint" href="/profile/{{ .Values.username }} " style="text-decoration: none; color: black;">
+                    <div class="menu-endpoint"> <!--replace push url to true-->
+                        <h3 style="color: #232323;">My profile</h3>
+                    </div>
+                </a>
+                {{ end }}
+                <div class="menu-endpoint" hx-get="/" hx-target="body" hx-push-url="true" hx-swap="outerHTML">
+                    <h3 style="color: #232323;">Main page</h3>
+                </div>
+                <a class="menu-endpoint" href="/marketplace" style="text-decoration: none; color: black;">
+                    <div class="menu-endpoint">
+                        <h3 style="color: #232323;">Marketplace</h3>
+                    </div>
+                </a>
+            </div>
+        </div>
+        <div class="main-container-interaction">
+            {{ template "marketplace-buttons" . }}
+            {{ template "orders" . }}
+        </div>
+    </div>
+    <div class="main-container-footer">
+
+    </div>
+</div>
+</body>
+</html>
+{{ end }}
+
+{{ block "orders" . }}
+    {{ if .Values.empty }}
+        <h1>У вас нет заказов!</h1>
+    {{ else }}
+    {{ end }}
+{{ end }}

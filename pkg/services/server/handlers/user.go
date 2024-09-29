@@ -3,6 +3,7 @@ package handlers
 import (
 	"github.com/labstack/echo/v4"
 	"go.uber.org/zap"
+	"mephiMainProject/pkg/services/marketplace/orders"
 	"mephiMainProject/pkg/services/marketplace/product"
 	"mephiMainProject/pkg/services/server/config"
 	"mephiMainProject/pkg/services/server/session"
@@ -22,6 +23,7 @@ type FormData struct {
 	Errors   map[string]string
 	Products []*product.Product
 	Profile  map[string]interface{}
+	Orders   []*orders.Order
 }
 
 func NewFormData() FormData {
@@ -30,6 +32,7 @@ func NewFormData() FormData {
 		Errors:   make(map[string]string),
 		Profile:  make(map[string]interface{}),
 		Products: make([]*product.Product, 0),
+		Orders:   make([]*orders.Order, 0),
 	}
 }
 

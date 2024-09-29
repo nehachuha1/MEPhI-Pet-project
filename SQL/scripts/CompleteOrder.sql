@@ -1,0 +1,1 @@
+UPDATE public.orders SET order_status='COMPLETED' WHERE id=$1;

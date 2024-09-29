@@ -125,8 +125,14 @@ func (h *ProfileHandler) EditProfilePOST(c echo.Context) error {
 		return c.Render(422, "profile-edit", formData)
 	}
 	newData.Age = age
-	newData.Address = c.FormValue("address") + " | Room: " + c.FormValue("room")
-	err := h.ProfileRepo.EditProfile(currentSession.Username, newData)
+	room := c.FormValue("room")
+	_, err := strconv.Atoi(room)
+	if err != nil {
+		formData.Errors["error"] = "Invalid room"
+		return c.Render(422, "profile-edit", formData)
+	}
+	newData.Address = c.FormValue("address") + " | Room: " + room
+	err = h.ProfileRepo.EditProfile(currentSession.Username, newData)
 	if err != nil {
 		formData.Values["name"] = oldData.FirstName
 		formData.Values["surname"] = oldData.SecondName

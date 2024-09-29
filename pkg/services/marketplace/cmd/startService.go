@@ -5,6 +5,7 @@ import (
 	"google.golang.org/grpc"
 	"log"
 	"mephiMainProject/pkg/services/marketplace/config"
+	"mephiMainProject/pkg/services/marketplace/orders"
 	"mephiMainProject/pkg/services/marketplace/product"
 	"net"
 )
@@ -16,15 +17,17 @@ func main() {
 
 	currentConfig := config.NewConfig()
 
-	marketPlaceServ := product.NewMarketplaceService(currentConfig)
+	marketplaceService := product.NewMarketplaceService(currentConfig)
+	orderService := orders.NewOrderService(currentConfig)
 
 	listener, err := net.Listen("tcp", ":"+currentConfig.GRPC.Port)
 	if err != nil {
-		log.Fatalf("Can't start marketp[lace service. Err - %v\n", err)
+		log.Fatalf("Can't start marketplace service. Err - %v\n", err)
 	}
 
 	server := grpc.NewServer()
-	product.RegisterMarketplaceServiceServer(server, marketPlaceServ)
+	product.RegisterMarketplaceServiceServer(server, marketplaceService)
+	orders.RegisterOrderServiceServer(server, orderService)
 
 	log.Printf("Successfully started marketplace service\n")
 	err = server.Serve(listener)

@@ -8,6 +8,7 @@ type databaseConfig struct {
 	PgxAddress  string
 	PgxPort     string
 	PgxDB       string
+	RedisURL    string
 }
 
 type gRPC struct {
@@ -27,6 +28,7 @@ func NewConfig() *Config {
 			PgxAddress:  getEnv("POSTGRES_ADDRESS", "localhost"),
 			PgxPort:     getEnv("POSTGRES_PORT", "5432"),
 			PgxDB:       getEnv("POSTGRES_DB_NAME", ""),
+			RedisURL:    getEnv("REDIS_URL", ""),
 		},
 		GRPC: gRPC{
 			Port: getEnv("GRPC_PORT", ""),

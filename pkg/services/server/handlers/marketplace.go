@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/labstack/echo/v4"
 	"go.uber.org/zap"
+	"mephiMainProject/pkg/services/marketplace/orders"
 	"mephiMainProject/pkg/services/marketplace/product"
 	"mephiMainProject/pkg/services/server/config"
 	"mephiMainProject/pkg/services/server/session"
@@ -19,6 +20,7 @@ type MarketplaceHandler struct {
 	Logger             *zap.SugaredLogger
 	CurrentCfg         *config.Config
 	MarketPlaceManager product.MarketplaceServiceClient
+	OrdersManager      orders.OrderServiceClient
 }
 
 func (mh *MarketplaceHandler) GetProduct(c echo.Context) error {
@@ -176,4 +178,31 @@ func (mh *MarketplaceHandler) CreateProductPost(c echo.Context) error {
 		return c.Render(422, "marketplace-form-add", formData)
 	}
 	return c.Redirect(http.StatusSeeOther, "/marketplace/products/"+currentSession.Username)
+}
+
+// Orders
+
+func (mh *MarketplaceHandler) GetOrders(c echo.Context) error {
+	formData := NewFormData()
+	currentSession, err := session.SessionFromContext(c)
+	if err != nil {
+		formData.Errors["error"] = err.Error()
+		return c.Render(422, "orders", formData)
+	}
+	formData.Values["username"] = currentSession.Username
+	allOrders, err := mh.OrdersManager.GetUserOrders(context.Background(), &orders.Buyer{BuyerUsername: currentSession.Username})
+	if err != nil {
+		formData.Errors["error"] = err.Error()
+		return c.Render(422, "orders", formData)
+	}
+	if len(allOrders.GetOrders()) == 0 {
+		formData.Values["empty"] = "empty"
+	}
+	formData.Orders = allOrders.GetOrders()
+	return c.Render(http.StatusOK, "orders-view", formData)
+}
+
+func (mh *MarketplaceHandler) OpenModalForm(c echo.Context) error {
+	formData := NewFormData()
+	return c.Render(http.StatusOK, "marketplace-item-page", formData)
 }

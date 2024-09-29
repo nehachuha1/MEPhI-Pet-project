@@ -54,7 +54,7 @@ func serve(file *multipart.FileHeader) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	newImg := resizeImage(img, 150, 150)
+	newImg := resizeImage(img, 450, 450)
 	newImageName := database.RandStringRunes(16)
 	err = encodeImage(newImageName, newImg, format)
 	if err != nil {

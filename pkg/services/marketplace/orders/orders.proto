@@ -1,0 +1,75 @@
+syntax="proto3";
+
+//    protoc --go_out=. --go-grpc_out=. --go-grpc_opt=paths=source_relative --go_opt=paths=source_relative *.proto
+
+option go_package = "./;orders";
+
+package orders;
+
+message Order {
+  int64 id = 1;
+  string seller_username = 2;
+  string buyer_username = 3;
+  int64 product_id = 4;
+  int64 product_count = 5;
+  string order_comment = 6;
+  string order_address = 7;
+  string order_status = 8;
+  bool is_completed = 9;
+}
+
+message OrderID {
+  int64 id = 1;
+}
+
+message Seller {
+  int64 id = 1;
+  string seller_username = 2;
+  bool accepted = 3;
+  string moderator_username = 4;
+  bool is_active = 5;
+  bool is_banned = 6;
+  int64 ban_id = 7;
+  int64 balance = 8;
+  repeated string transactions = 9;
+}
+
+message Buyer {
+  int64 id = 1;
+  string buyer_username = 2;
+}
+
+message User {
+  string username = 1;
+}
+
+message UserBlock {
+  int64 id = 1;
+  string intruder_username = 2;
+  string moderator_username = 3;
+  string ban_reason = 4;
+  string ban_date = 5;
+  string expires_at = 6;
+}
+
+message AllOrders {
+  repeated Order orders = 1;
+  int64 page = 2;
+}
+
+message Response {
+  int64 code = 1;
+  string message = 2;
+}
+
+service OrderService {
+  rpc GetSellerOrders(Seller) returns (AllOrders) {}
+  rpc GetUserOrders(Buyer) returns (AllOrders) {}
+  rpc CreateOrder (Order) returns (OrderID) {}
+  rpc GetOrder (OrderID) returns (Order) {}
+  rpc AcceptOrder (OrderID) returns (Response) {}
+  rpc CompleteOrder (OrderID) returns (Response) {}
+  rpc CheckUserBlock(User) returns (UserBlock) {}
+  rpc BlockUser(UserBlock) returns (Response) {}
+  rpc UnblockUser(User) returns (Response) {}
+}
