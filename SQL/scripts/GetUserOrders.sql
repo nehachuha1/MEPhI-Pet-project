@@ -1,6 +1,7 @@
 SELECT id,
        seller_username,
        buyer_username,
+       buyer_name,
        product_id,
        product_count,
        order_comment,

@@ -10,12 +10,13 @@ message Order {
   int64 id = 1;
   string seller_username = 2;
   string buyer_username = 3;
-  int64 product_id = 4;
-  int64 product_count = 5;
-  string order_comment = 6;
-  string order_address = 7;
-  string order_status = 8;
-  bool is_completed = 9;
+  string buyer_name = 4;
+  int64 product_id = 5;
+  int64 product_count = 6;
+  string order_comment = 7;
+  string order_address = 8;
+  string order_status = 9;
+  bool is_completed = 10;
 }
 
 message OrderID {

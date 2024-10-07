@@ -58,6 +58,7 @@ type Order struct {
 	Id             int64
 	SellerUsername string
 	BuyerUsername  string
+	BuyerName      string
 	ProductId      int64
 	ProductCount   int64
 	OrderComment   string

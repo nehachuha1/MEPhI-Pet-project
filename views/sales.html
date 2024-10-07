@@ -1,4 +1,4 @@
-{{block "orders-view" .}}
+{{block "sales-view" .}}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -53,7 +53,7 @@
         </div>
         <div class="main-container-interaction">
             {{ template "marketplace-buttons" . }}
-            {{ template "orders" . }}
+            {{ template "sales" . }}
         </div>
     </div>
     <div class="main-container-footer">
@@ -64,28 +64,5 @@
 </html>
 {{ end }}
 
-{{ block "orders" . }}
-    <h1>Текущие заказы</h1>
-    {{ if .Values.empty }}
-        <h2>У вас нет заказов!</h2>
-    {{ else }}
-    <div class="orders-list">
-        {{ range .Orders }}
-            {{ template "order" . }}
-        {{ end }}
-    </div>
-    {{ end }}
-{{ end }}
-
-{{ block "order" . }}
-    <div class=order>
-        <p><b>Id: {{ .Id }}</b> &emsp; <b>Никнейм продавца:</b> {{ .SellerUsername }} &emsp;</p>
-        <p><b>Содержимое заказа:</b></p>
-        <div class="order-products">
-            <p>&emsp;&emsp;&emsp;<b>ID:</b> {{ .ProductId }} &emsp;|&emsp; <b>Количество:</b> {{ .ProductCount }}</p>
-        </div>
-        <p><b>Адрес заказа</b>: {{ .OrderAddress }} </p>
-        <p><b>Комментарий к заказу</b>: {{ .OrderComment }}</p>
-        <p><b>Текущий статус заказа</b>: {{ .OrderStatus }}</p>
-    </div>
+{{ block "sales" . }}
 {{ end }}

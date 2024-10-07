@@ -52,6 +52,7 @@ func (ors *OrderService) GetSellerOrders(ctx context.Context, seller *Seller) (*
 			Id:             ord.Id,
 			SellerUsername: ord.SellerUsername,
 			BuyerUsername:  ord.BuyerUsername,
+			BuyerName:      ord.BuyerName,
 			ProductId:      ord.ProductId,
 			ProductCount:   ord.ProductCount,
 			OrderComment:   ord.OrderComment,
@@ -69,7 +70,7 @@ func (ors *OrderService) GetUserOrders(ctx context.Context, buyer *Buyer) (*AllO
 		return &AllOrders{}, emptyBuyerUsername
 	}
 
-	res, err := ors.Database.GetUserOrders(&config.Buyer{Id: buyer.Id, BuyerUsername: buyer.BuyerUsername})
+	res, err := ors.Database.GetUserOrders(&config.Buyer{BuyerUsername: buyer.BuyerUsername})
 	if err != nil {
 		return &AllOrders{}, err
 	}
@@ -80,6 +81,7 @@ func (ors *OrderService) GetUserOrders(ctx context.Context, buyer *Buyer) (*AllO
 			Id:             ord.Id,
 			SellerUsername: ord.SellerUsername,
 			BuyerUsername:  ord.BuyerUsername,
+			BuyerName:      ord.BuyerName,
 			ProductId:      ord.ProductId,
 			ProductCount:   ord.ProductCount,
 			OrderComment:   ord.OrderComment,
@@ -97,15 +99,13 @@ func (ors *OrderService) CreateOrder(ctx context.Context, order *Order) (*OrderI
 		return &OrderID{}, wrongOrderStruct
 	}
 	currentOrder := &config.Order{
-		Id:             order.Id,
 		SellerUsername: order.SellerUsername,
 		BuyerUsername:  order.BuyerUsername,
+		BuyerName:      order.BuyerName,
 		ProductId:      order.ProductId,
 		ProductCount:   order.ProductCount,
 		OrderComment:   order.OrderComment,
 		OrderAddress:   order.OrderAddress,
-		OrderStatus:    order.OrderStatus,
-		IsCompleted:    order.IsCompleted,
 	}
 	res, err := ors.Database.CreateOrder(currentOrder)
 	if err != nil {
@@ -123,6 +123,7 @@ func (ors *OrderService) GetOrder(ctx context.Context, orderID *OrderID) (*Order
 		Id:             res.Id,
 		SellerUsername: res.SellerUsername,
 		BuyerUsername:  res.BuyerUsername,
+		BuyerName:      res.BuyerName,
 		ProductId:      res.ProductId,
 		ProductCount:   res.ProductCount,
 		OrderComment:   res.OrderComment,

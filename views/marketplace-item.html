@@ -42,16 +42,16 @@
                 <a class="menu-endpoint" href="/profile/{{ .Values.username }} "
                    style="text-decoration: none; color: black;">
                     <div class="menu-endpoint"> <!--replace push url to true-->
-                        <h3 style="color: #232323;">My profile</h3>
+                        <h3 style="color: #232323;">Мой профиль</h3>
                     </div>
                 </a>
                 {{ end }}
                 <div class="menu-endpoint" hx-get="/" hx-target="body" hx-push-url="true" hx-swap="outerHTML">
-                    <h3 style="color: #232323;">Main page</h3>
+                    <h3 style="color: #232323;">Лента</h3>
                 </div>
                 <a class="menu-endpoint" href="/marketplace" style="text-decoration: none; color: black;">
                     <div class="menu-endpoint">
-                        <h3 style="color: #232323;">Marketplace</h3>
+                        <h3 style="color: #232323;">Маркетплейс</h3>
                     </div>
                 </a>
             </div>
@@ -72,9 +72,6 @@
 <!--TODO: сделать цикл пробежки по картинкам, чтобы создавались одинаковые фотки-->
 {{ block "marketplace-item-page-data" . }}
 <div class="marketplace-item-page">
-    <!--    <div class="marketplace-item-page-header">-->
-    <!--        <div id="item-name">{{ .Values.name }}</div><br>-->
-    <!--    </div>-->
     <img src="/data/img/{{ .Values.mainPhoto }} " style="width: 450px; height: 450px;">
     <div class="marketplace-item-page-body">
         <div id="item-name">{{ .Values.name }}</div>
@@ -91,24 +88,30 @@
             </a>
             {{ end }}
             <!--Начало блока с модальным окном-->
+            {{ if .Values.currentUserIsNotOwner }}
             <button type="button" id="create-order-btn">Order product</button>
+            {{ end }}
             <div class="modal" id="order-form">
                 <div class="modal__box">
                     <button type="button" class="modal__close-btn" id="close-order-form-btn">Close</button>
-                    <h2>My model window</h2>
-                    <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-                        Suspendisse nec purus vitae augue consectetur mattis.
-                        Fusce tincidunt metus vitae finibus placerat.
-                        Donec quam ex, venenatis eu velit vel, vehicula rhoncus tellus.
-                        Morbi eget metus posuere, commodo neque vitae, euismod odio.
-                        Duis tempus gravida turpis, a dignissim neque rutrum nec.
-                        Cras cursus sollicitudin augue, at bibendum odio.
-                        Vestibulum nec tincidunt nibh.
-                        Vivamus vel ligula eget libero eleifend ultricies.
-                        Phasellus sem nulla, interdum et iaculis et, venenatis et justo.
-                        Morbi tristique enim et ipsum elementum gravida.
-                        Maecenas eget ex tincidunt magna ullamcorper dapibus.
-                        Duis consectetur tristique nisi. Duis eget dolor tellus. Vivamus.</p>
+                    <form action="/marketplace/orders/create" method="post" enctype="multipart/form-data">
+                        <label for="buyerName" style="font-size: 24px">Ваше имя</label>
+                        <input type="text" id="buyerName" minlength="4" name="buyerName" placeholder="Как к вам обращаться?" style="width: 300px; font-size: 18px" required>
+                        <label for="address" style="font-size: 24px">Текущий адрес</label>
+                        <input {{if .Values.userAddress}} value="{{ .Values.userAddress}}" {{ end }} placeholder="Оставьте поле пустым, чтобы адрес заполнился автоматически"
+                               type="text" id="address" minlength="4" name="address" style="font-size: 12px; width: 300px" required>
+                        <label for="contacts" style="font-size: 24px">Ваши контакты</label>
+                        <input type="text" id="contacts" minlength="4" name="contacts" placeholder="Например: tg @nehachuha1" style="width: 300px; font-size: 18px" required>
+                        <label for="description" style="font-size: 24px">Примечание к заказу</label>
+                        <textarea id="description" name="description" placeholder="Если ничего не нужно, оставьте поле пустым" rows="5" cols="30" style="resize: none; font-size: 18px"></textarea><br><br>
+                        <input type="hidden" id="ProductID" name="ProductID" value="{{ .Values.id }}">
+                        <button type="submit">Заказать</button>
+                        <div>
+                            {{ if .Errors.error }}
+                            <div style="color: red">{{ .Errors.createError }}</div>
+                            {{ end }}
+                        </div>
+                    </form>
                 </div>
             </div>
         </div>
@@ -127,18 +130,24 @@
 {{ block "marketplace-item-page-buttons" . }}
 <div class="marketplace-buttons-container">
     <div class="marketplace-button" hx-get="/marketplace/create" hx-swap="innerHTML" hx-target=".marketplace-item-page">
-        <h3>Add product</h3>
+        <h3>Создать объявление</h3>
     </div>
     <a class="marketplace-button" href="/marketplace/products/{{ .Values.username }}"
        style="text-decoration: none; color: black;">
         <div>
-            <h3>My products</h3>
+            <h3>Мои товары</h3>
         </div>
     </a>
     <a class="marketplace-button" href="/marketplace/orders/"
        style="text-decoration: none; color: black;">
         <div>
-            <h3>My orders</h3>
+            <h3>Мои заказы</h3>
+        </div>
+    </a>
+    <a class="marketplace-button" href="/marketplace/sales/"
+       style="text-decoration: none; color: black;">
+        <div>
+            <h3>Мои продажи</h3>
         </div>
     </a>
 </div>

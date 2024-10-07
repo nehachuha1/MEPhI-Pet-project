@@ -229,3 +229,31 @@ div.item-page-footer-interaction {
 .modal__close-btn:hover {
     color: red;
 }
+
+div.orders-list {
+    width: auto;
+    height: 65vh;
+    min-width: 100%;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+}
+
+.order{
+    width: auto;
+    border: 1px solid green;
+    min-width: 100%;
+}
+
+.order > p {
+    font-size: 18px;
+}
+
+div.orders-list p {
+    margin-right: 10px;
+}
+
+.order-products{
+    display: flex;
+    flex-direction: column;
+    line-height: 0.01;
+}

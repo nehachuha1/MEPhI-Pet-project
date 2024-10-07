@@ -70,6 +70,7 @@ func main() {
 		Logger:             logger,
 		MarketPlaceManager: marketplaceService,
 		OrdersManager:      orderService,
+		ProfileRepo:        profileRepo,
 	}
 	//
 	echoHandler := handlers.GenerateRoutes(currentCfg, sessionManager, userHandler, marketHandler, profileHandler)

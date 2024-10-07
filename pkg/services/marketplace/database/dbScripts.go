@@ -4,14 +4,14 @@ package database
 
 const (
 	acceptOrderScript = `UPDATE public.orders SET order_status='IN_PROGRESS' WHERE id=$1;`
-	createOrderScript = `INSERT INTO public.orders 
-    					(seller_username, buyer_username, product_id, product_count, order_comment, order_address,
-                           order_status)
-						VALUES ($1, $2, $3, $4, $5, $6, 'ACTIVE');`
+	createOrderScript = `INSERT INTO public.orders (seller_username, buyer_username, buyer_name, product_id, product_count,
+                           order_comment, order_address, order_status)
+						VALUES ($1, $2, $3, $4, $5, $6, $7, 'ACTIVE');`
 	completeOrderScript = `UPDATE public.orders SET order_status='COMPLETED' WHERE id=$1;`
 	getUserOrdersScript = `SELECT id,
 							   seller_username,
 							   buyer_username,
+							   buyer_name,
 							   product_id,
 							   product_count,
 							   order_comment,
@@ -23,6 +23,7 @@ const (
 	getOrderScript = `SELECT id,
 							   seller_username,
 							   buyer_username,
+							   buyer_name,
 							   product_id,
 							   product_count,
 							   order_comment,
@@ -34,6 +35,7 @@ const (
 	getSellerOrdersScript = `SELECT id,
 							   seller_username,
 							   buyer_username,
+							   buyer_name,
 							   product_id,
 							   product_count,
 							   order_comment,

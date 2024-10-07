@@ -150,7 +150,8 @@ func (db *DatabaseORM) GetSellerOrders(seller *config.Seller) (*config.AllOrders
 	for rows.Next() {
 		currentOrder := &config.Order{}
 		err = rows.Scan(&currentOrder.Id, &currentOrder.SellerUsername, &currentOrder.BuyerUsername,
-			&currentOrder.ProductId, &currentOrder.ProductCount, &currentOrder.OrderComment, &currentOrder.OrderStatus, &currentOrder.IsCompleted)
+			&currentOrder.BuyerName, &currentOrder.ProductId, &currentOrder.ProductCount, &currentOrder.OrderComment,
+			&currentOrder.OrderAddress, &currentOrder.OrderStatus, &currentOrder.IsCompleted)
 		if err != nil {
 			return &config.AllOrders{}, err
 		}
@@ -162,7 +163,6 @@ func (db *DatabaseORM) GetSellerOrders(seller *config.Seller) (*config.AllOrders
 func (db *DatabaseORM) GetUserOrders(buyer *config.Buyer) (*config.AllOrders, error) {
 	rows, err := db.Pgx.DB.Query(getUserOrdersScript, &buyer.BuyerUsername)
 	if err != nil {
-		log.Printf("DB Error 1: %s\n", err.Error())
 		return &config.AllOrders{}, err
 	}
 
@@ -170,30 +170,34 @@ func (db *DatabaseORM) GetUserOrders(buyer *config.Buyer) (*config.AllOrders, er
 	for rows.Next() {
 		currentOrder := &config.Order{}
 		err = rows.Scan(&currentOrder.Id, &currentOrder.SellerUsername, &currentOrder.BuyerUsername,
-			&currentOrder.ProductId, &currentOrder.ProductCount, &currentOrder.OrderComment, &currentOrder.OrderStatus, &currentOrder.IsCompleted)
+			&currentOrder.BuyerName, &currentOrder.ProductId, &currentOrder.ProductCount, &currentOrder.OrderComment,
+			&currentOrder.OrderAddress, &currentOrder.OrderStatus, &currentOrder.IsCompleted)
 		if err != nil {
-			log.Printf("DB Error 2: %s\n", err.Error())
-			//return &config.AllOrders{}, err
+			return &config.AllOrders{}, err
 		}
 		userOrders.Orders = append(userOrders.Orders, currentOrder)
 	}
 	return userOrders, nil
 }
 func (db *DatabaseORM) CreateOrder(order *config.Order) (*config.OrderID, error) {
-	_, err := db.Pgx.DB.ExecContext(context.Background(), createOrderScript, order.SellerUsername, order.BuyerUsername, order.ProductId,
+	_, err := db.Pgx.DB.ExecContext(context.Background(), createOrderScript, order.SellerUsername,
+		order.BuyerUsername, order.BuyerName, order.ProductId,
 		order.ProductCount, order.OrderComment, order.OrderAddress)
 	if err != nil {
 		return &config.OrderID{}, err
 	}
+	currentConn := db.Rds.RedisConnection.Get()
+	defer currentConn.Close()
 
-	lastOrderNum, err := redis.Int(c.Do("GET", ordersKey))
+	lastOrderNum, err := redis.Int(currentConn.Do("GET", ordersKey))
 	if errors.Is(err, redis.ErrNil) {
-		lastOrderNum, err = redis.Int(c.Do("SET", ordersKey, 1))
+		_, err = currentConn.Do("SET", ordersKey, 1)
 		if err != nil {
+			log.Printf("error in ")
 			return &config.OrderID{}, err
 		}
 	}
-	_, err = redis.Int(c.Do("INCRBY", ordersKey, 1))
+	_, err = redis.Int(currentConn.Do("INCRBY", ordersKey, 1))
 	if err != nil {
 		return &config.OrderID{Id: int64(lastOrderNum)}, errorIncrementOrdersCounter
 	}
@@ -208,8 +212,9 @@ func (db *DatabaseORM) GetOrder(orderId *config.OrderID) (*config.Order, error) 
 
 	currentOrder := &config.Order{}
 	for rows.Next() {
-		err = rows.Scan(&currentOrder.Id, &currentOrder.SellerUsername, &currentOrder.BuyerUsername, &currentOrder.ProductId,
-			&currentOrder.ProductCount, &currentOrder.OrderComment, &currentOrder.OrderAddress, &currentOrder.OrderAddress,
+		err = rows.Scan(&currentOrder.Id, &currentOrder.SellerUsername, &currentOrder.BuyerUsername,
+			&currentOrder.BuyerName, &currentOrder.ProductId, &currentOrder.ProductCount, &currentOrder.OrderComment,
+			&currentOrder.OrderAddress, &currentOrder.OrderAddress,
 			&currentOrder.IsCompleted)
 		if err != nil {
 			return &config.Order{}, err

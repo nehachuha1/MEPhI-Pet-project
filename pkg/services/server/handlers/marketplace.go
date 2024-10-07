@@ -2,12 +2,14 @@ package handlers
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"github.com/labstack/echo/v4"
 	"go.uber.org/zap"
 	"mephiMainProject/pkg/services/marketplace/orders"
 	"mephiMainProject/pkg/services/marketplace/product"
 	"mephiMainProject/pkg/services/server/config"
+	"mephiMainProject/pkg/services/server/profile"
 	"mephiMainProject/pkg/services/server/session"
 	"mephiMainProject/pkg/services/server/utils"
 	"net/http"
@@ -21,17 +23,18 @@ type MarketplaceHandler struct {
 	CurrentCfg         *config.Config
 	MarketPlaceManager product.MarketplaceServiceClient
 	OrdersManager      orders.OrderServiceClient
+	ProfileRepo        profile.ProfileRepo
 }
 
 func (mh *MarketplaceHandler) GetProduct(c echo.Context) error {
 	formData := NewFormData()
 
-	currentUser, err := session.SessionFromContext(c)
+	currentSession, err := session.SessionFromContext(c)
 	if err != nil {
 		formData.Errors["error"] = err.Error()
 		return c.Render(422, "marketplace-item-page", formData)
 	}
-	formData.Values["username"] = currentUser.Username
+	formData.Values["username"] = currentSession.Username
 
 	productId := c.Param("id")
 	currentProduct, err := mh.MarketPlaceManager.GetProduct(context.Background(), &product.ProductID{ProductID: productId})
@@ -39,8 +42,13 @@ func (mh *MarketplaceHandler) GetProduct(c echo.Context) error {
 		formData.Errors["error"] = err.Error()
 		return c.Render(422, "marketplace-item-page", formData)
 	}
-	if currentProduct.OwnerUsername == currentUser.Username {
+	if currentProduct.OwnerUsername == currentSession.Username {
 		formData.Values["currentUserIsOwner"] = "1"
+	} else {
+		_, err = mh.ProfileRepo.GetProfile(currentSession.Username)
+		if errors.Is(err, nil) {
+			formData.Values["currentUserIsNotOwner"] = "1"
+		}
 	}
 	formData.Values["id"] = productId
 	formData.Values["name"] = currentProduct.Name
@@ -187,22 +195,93 @@ func (mh *MarketplaceHandler) GetOrders(c echo.Context) error {
 	currentSession, err := session.SessionFromContext(c)
 	if err != nil {
 		formData.Errors["error"] = err.Error()
-		return c.Render(422, "orders", formData)
+		return c.Render(422, "orders-view", formData)
 	}
 	formData.Values["username"] = currentSession.Username
 	allOrders, err := mh.OrdersManager.GetUserOrders(context.Background(), &orders.Buyer{BuyerUsername: currentSession.Username})
 	if err != nil {
 		formData.Errors["error"] = err.Error()
-		return c.Render(422, "orders", formData)
+		return c.Render(422, "orders-view", formData)
 	}
 	if len(allOrders.GetOrders()) == 0 {
 		formData.Values["empty"] = "empty"
+	} else {
+		formData.Orders = allOrders.GetOrders()
 	}
-	formData.Orders = allOrders.GetOrders()
 	return c.Render(http.StatusOK, "orders-view", formData)
 }
 
-func (mh *MarketplaceHandler) OpenModalForm(c echo.Context) error {
+func (mh *MarketplaceHandler) ProceedOrder(c echo.Context) error {
 	formData := NewFormData()
-	return c.Render(http.StatusOK, "marketplace-item-page", formData)
+	currentSession, err := session.SessionFromContext(c)
+	if err != nil {
+		formData.Errors["error"] = err.Error()
+		return c.Render(422, "marketplace-item-page", formData)
+	}
+	formData.Values["username"] = currentSession.Username
+	currentUser, err := mh.ProfileRepo.GetProfile(currentSession.Username)
+	if err != nil {
+		formData.Errors["error"] = err.Error()
+		return c.Render(422, "marketplace-item-page", formData)
+	}
+	buyerName := c.FormValue("buyerName")
+	if buyerName == "" {
+		formData.Errors["error"] = "Некорректные данные (поле 'Имя') при оформлении заказе"
+		return c.Render(422, "marketplace-item-page", formData)
+	}
+	buyerAddress := c.FormValue("address")
+	if buyerAddress == "" {
+		buyerAddress = currentUser.Address
+	}
+	contacts := c.FormValue("contacts")
+	if contacts == "" {
+		mh.Logger.Infof("Incorrect input by contacts\n")
+		formData.Errors["error"] = "Некорректные данные (поле 'Контакты') при оформлении заказе"
+		return c.Render(422, "marketplace-item-page", formData)
+	}
+	desc := c.FormValue("description")
+	if desc == "" {
+		desc = "Пусто" + " | Указанный контакт для связи: " + contacts
+	} else {
+		desc = desc + " | Указанный контакт для связи: " + contacts
+	}
+	productId := c.FormValue("ProductID")
+	intProductId, err := strconv.ParseUint(productId, 10, 64)
+	if err != nil {
+		formData.Errors["error"] = "Error by parsing productID from headers"
+		return c.Render(422, "marketplace-item-page", formData)
+	}
+	currentProduct, err := mh.MarketPlaceManager.GetProduct(context.Background(), &product.ProductID{ProductID: productId})
+	if err != nil {
+		mh.Logger.Infof("Can't get product with this ID\n")
+		formData.Errors["error"] = fmt.Sprintf("Error by getting product with ID %v from DB\n", productId)
+		return c.Render(422, "marketplace-item-page", formData)
+	}
+
+	if currentProduct.OwnerUsername == currentSession.Username {
+		formData.Values["currentUserIsOwner"] = "1"
+	}
+	formData.Values["id"] = productId
+	formData.Values["name"] = currentProduct.Name
+	formData.Values["description"] = currentProduct.Description
+	formData.Values["price"] = strconv.Itoa(int(currentProduct.Price))
+	formData.Values["mainPhoto"] = currentProduct.MainPhoto
+	formData.Values["photoUrls"] = strings.Join(currentProduct.PhotoUrls, " | ")
+
+	_, err = mh.OrdersManager.CreateOrder(context.Background(), &orders.Order{
+		SellerUsername: currentProduct.OwnerUsername,
+		BuyerUsername:  currentSession.Username,
+		BuyerName:      buyerName,
+		ProductId:      int64(intProductId),
+		ProductCount:   1,
+		OrderComment:   desc,
+		OrderAddress:   buyerAddress,
+	})
+
+	if err != nil {
+		mh.Logger.Infof("Error by creating new order: %v\n", err.Error())
+		formData.Errors["error"] = fmt.Sprintf("Error by creating new order: %v\n", err.Error())
+		return c.Render(422, "marketplace-item-page", formData)
+	}
+	return c.Redirect(http.StatusSeeOther, "/marketplace/orders/")
 }

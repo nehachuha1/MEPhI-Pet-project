@@ -54,7 +54,8 @@ func GenerateRoutes(currentCfg *config.Config, sm *session.SessionManager, uh Us
 
 	// Orders
 	e.GET("/marketplace/orders/", mh.GetOrders)
-	e.GET("/order/new", mh.OpenModalForm)
+	e.POST("/marketplace/orders/create", mh.ProceedOrder)
+	//e.GET("/order/new", mh.OpenModalForm)
 
 	//not found
 	e.RouteNotFound("/*", func(c echo.Context) error {
@@ -62,7 +63,7 @@ func GenerateRoutes(currentCfg *config.Config, sm *session.SessionManager, uh Us
 	})
 
 	// middlewares
-	e.Use(middleware.Logger())
+	//e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
 	e.Use(ownMiddleware.Auth(sm))
 

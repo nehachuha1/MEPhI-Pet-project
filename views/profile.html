@@ -35,18 +35,18 @@
             <div class="main-container-menu">
                 <div class="main-container-menu-buttons">
                     {{ if .Values.username }}
-                    <a class="menu-endpoint" href="/profile/{{ .Values.username }} ">
+                    <a class="menu-endpoint" href="/profile/{{ .Values.username }} " style="text-decoration: none; color: black; ">
                         <div class="menu-endpoint"> <!--replace push url to true-->
-                            <h3 style="color: #232323;">My profile</h3>
+                            <h3 style="color: #232323;">Мой профиль</h3>
                         </div>
                     </a>
                     {{ end }}
                     <div class="menu-endpoint" hx-get="/" hx-target="body" hx-push-url="true" hx-swap="outerHTML">
-                        <h3 style="color: #232323;">Main page</h3>
+                        <h3 style="color: #232323;">Лента</h3>
                     </div>
                     <a class="menu-endpoint" href="/marketplace" style="text-decoration: none; color: black;">
                         <div class="menu-endpoint">
-                            <h3 style="color: #232323;">Marketplace</h3>
+                            <h3 style="color: #232323;">Маркетплейс</h3>
                         </div>
                     </a>
                 </div>
@@ -68,37 +68,37 @@
     {{ if .Errors.error }}
     <div style="color: red">{{ .Errors.error }}</div>
     {{ else if .Profile.name }}
-    <div class="profile-field"><h4>Name: </h4>{{.Profile.name}}</div><hr>
-    <div class="profile-field"><h4>Surname: </h4>{{.Profile.surname}}</div><hr>
-    <div class="profile-field"><h4>Sex: </h4>{{.Profile.sex}}</div><hr>
-    <div class="profile-field"><h4>Age: </h4>{{.Profile.age}}</div><hr>
-    <div class="profile-field"><h4>Address: </h4>{{.Profile.address}}</div><hr>
-    <div class="profile-field"><h4>Register date: </h4>{{.Profile.registerDate}}</div><hr>
-    <div class="profile-field"><h4>Edit date: </h4>{{.Profile.editDate}}</div><hr>
+    <div class="profile-field"><h4>Имя: </h4>{{.Profile.name}}</div><hr>
+    <div class="profile-field"><h4>Фамилия: </h4>{{.Profile.surname}}</div><hr>
+    <div class="profile-field"><h4>Пол: </h4>{{.Profile.sex}}</div><hr>
+    <div class="profile-field"><h4>Возраст: </h4>{{.Profile.age}}</div><hr>
+    <div class="profile-field"><h4>Адрес: </h4>{{.Profile.address}}</div><hr>
+    <div class="profile-field"><h4>Дата регистрации: </h4>{{.Profile.registerDate}}</div><hr>
+    <div class="profile-field"><h4>Дата изменения: </h4>{{.Profile.editDate}}</div><hr>
         {{ if .Values.currentUserIsOwner }}
     <div class="edit-button" hx-get="/profile/edit" hx-target=".profile" hx-swap="innerHTML">
-        <h4>Edit profile</h4>
+        <h4>Редактировать профиль</h4>
     </div>
         {{ end }}
     {{ else }}
     <form hx-post="/profile/create" hx-target=".profile" hx-swap="outerHTML">
-        <label for="name" style="font-size: 24px">Name</label>
+        <label for="name" style="font-size: 24px">Имя</label>
         <input {{if .Values.name}} value="{{ .Values.name }}" {{ end }}
                type="text" id="name" name="name" placeholder="Ivan" style="width: 300px; font-size: 18px">
-        <label for="surname" style="font-size: 24px">Surname</label>
+        <label for="surname" style="font-size: 24px">Фамилия</label>
         <input {{if .Values.surname}} value="{{ .Values.surname }}" {{ end }}
                type="text" id="surname" name="surname" placeholder="Ivanov" style="width: 300px; font-size: 18px">
-        <label for="sex" style="font-size: 24px">Sex</label>
+        <label for="sex" style="font-size: 24px">Пол</label>
         <input {{if .Values.sex}} value="{{ .Values.sex }}" {{ end }}
                type="text" id="sex" name="sex" placeholder="M или F" style="width: 100px; font-size: 18px">
-        <label for="age" style="font-size: 24px">Age</label>
+        <label for="age" style="font-size: 24px">Возраст</label>
         <input {{if .Values.age}} value="{{ .Values.age }}" {{ end }}
                type="text" id="age" name="age" style="width: 100px; font-size: 18px">
-        <label for="address" style="font-size: 24px">Address</label>
+        <label for="address" style="font-size: 24px">Адрес</label>
         <select id="address" name="address" style="font-size: 18px">
-            <option value="Koshkina 11k1">Koshkina 11k1</option>
+            <option value="Koshkina 11k1">Кошкина 11к1</option>
         </select>
-        <label for="room" style="font-size: 24px">Room</label>
+        <label for="room" style="font-size: 24px">Комната/квартира</label>
         <input id="room" name="room" type="text" style="width: 300px; font-size: 18px">
             {{ if .Errors.createError }}
             <div style="color: red">{{ .Errors.createError }}</div>
@@ -114,30 +114,30 @@
     <div style="color: red">{{ .Errors.error }}</div>
     <a href="/profile/{{ .Values.username }}">
         <div>
-            <h4>Cancel</h4>
+            <h4>Отменить</h4>
         </div>
     </a>
     {{ else }}
     <form hx-post="/profile/edit" hx-swap="outerHTML">
-        <label for="name">Name</label>
+        <label for="name">Имя</label>
         <input {{if .Values.name}} value="{{ .Values.name }}" {{ end }}
                type="text" id="name" name="name">
-        <label for="surname">Surname</label>
+        <label for="surname">Фамилия</label>
         <input {{if .Values.surname}} value="{{ .Values.surname }}" {{ end }}
                type="text" id="surname" name="surname">
-        <label for="sex">Sex</label>
+        <label for="sex">Пол</label>
         <input {{if .Values.sex}} value="{{ .Values.sex }}" {{ end }}
                type="text" id="sex" name="sex">
-        <label for="age">Age</label>
+        <label for="age">Возраст</label>
         <input {{if .Values.age}} value="{{ .Values.age }}" {{ end }}
                type="text" id="age" name="age">
-        <label for="address">Address</label>
+        <label for="address">Адрес</label>
         <select id="address" name="address">
-            <option value="Koshkina 11k1">Koshkina 11k1</option>
+            <option value="Koshkina 11k1">Кошкина 11к1</option>
         </select>
-        <label for="room">Room</label>
+        <label for="room">Комната/квартира</label>
         <input id="room" name="room" type="text">
-        <button type="submit">Save changes</button>
+        <button type="submit">Сохранить изменения</button>
     </form>
     {{ end }}
 {{ end }}

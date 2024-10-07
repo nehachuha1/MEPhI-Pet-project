@@ -35,18 +35,18 @@
             <div class="main-container-menu">
                 <div class="main-container-menu-buttons">
                     {{ if .Values.username }}
-                    <a class="menu-endpoint" href="/profile/{{ .Values.username }} " style="text-decoration: none; color: black;">
+                    <a class="menu-endpoint" href="/profile/{{ .Values.username }} " style="text-decoration: none; color: black; ">
                         <div class="menu-endpoint"> <!--replace push url to true-->
-                            <h3 style="color: #232323;">My profile</h3>
+                            <h3 style="color: #232323;">Мой профиль</h3>
                         </div>
                     </a>
                     {{ end }}
                     <div class="menu-endpoint" hx-get="/" hx-target="body" hx-push-url="true" hx-swap="outerHTML">
-                        <h3 style="color: #232323;">Main page</h3>
+                        <h3 style="color: #232323;">Лента</h3>
                     </div>
                     <a class="menu-endpoint" href="/marketplace" style="text-decoration: none; color: black;">
                         <div class="menu-endpoint">
-                            <h3 style="color: #232323;">Marketplace</h3>
+                            <h3 style="color: #232323;">Маркетплейс</h3>
                         </div>
                     </a>
                 </div>
@@ -67,17 +67,23 @@
 {{ block "marketplace-buttons" . }}
     <div class="marketplace-buttons-container">
         <div class="marketplace-button" hx-get="/marketplace/create" hx-swap="innerHTML" hx-target=".marketplace-table">
-            <h3>Add product</h3>
+            <h3>Создать объявление</h3>
         </div>
         <a class="marketplace-button" href="/marketplace/products/{{ .Values.username }}" style="text-decoration: none; color: black;">
             <div>
-                <h3>My products</h3>
+                <h3>Мои товары</h3>
             </div>
         </a>
         <a class="marketplace-button" href="/marketplace/orders/"
            style="text-decoration: none; color: black;">
             <div>
-                <h3>My orders</h3>
+                <h3>Мои заказы</h3>
+            </div>
+        </a>
+        <a class="marketplace-button" href="/marketplace/sales/"
+           style="text-decoration: none; color: black;">
+            <div>
+                <h3>Мои продажи</h3>
             </div>
         </a>
     </div>
@@ -112,18 +118,18 @@
 {{ block "marketplace-form-add" . }}
 <div class="marketplace-form-add-container">
     <form action="/marketplace/create" method="post" enctype="multipart/form-data" hx-swap="outerHTML">
-        <label for="name" style="font-size: 24px">Name</label>
+        <label for="name" style="font-size: 24px">Название</label>
         <input {{if .Values.name}} value="{{ .Values.name }}" {{ end }}
                type="text" id="name" minlength="4" name="name" placeholder="Название товара (от 4 символов)" style="width: 300px; font-size: 18px" required>
-        <label for="price" style="font-size: 24px">Price</label>
+        <label for="price" style="font-size: 24px">Цена</label>
         <input {{if .Values.price}} value="{{ .Values.price}}" {{ end }}
                type="number" min="1" max="100000" id="price" name="price" style="font-size: 18px" required>
-        <label for="description" style="font-size: 24px">Description</label>
+        <label for="description" style="font-size: 24px">Описание</label>
         <textarea id="description" name="description" minlength="4" placeholder="Введите описание товара" rows="5" cols="30" style="resize: none; font-size: 18px" required></textarea>
-        <label for="file" style="font-size: 24px">Product photo</label>
+        <label for="file" style="font-size: 24px">Фотография товара</label>
         <input type="file" id="file" name="files" multiple required><br><br>
         <span class="error">{{ .Errors.imageUploadError }}</span>
-        <button type="submit">Save changes</button>
+        <button type="submit">Сохранить изменения</button>
         <div>
             {{ if .Errors.error }}
             <div style="color: red">{{ .Errors.createError }}</div>
@@ -131,7 +137,7 @@
         </div>
     </form><br>
     <a href="/marketplace">
-        <button type="button">Cancel</button>
+        <button type="button">Отменить</button>
     </a>
 </div>
 {{ end }}
