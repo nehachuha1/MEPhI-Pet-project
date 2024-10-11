@@ -84,12 +84,12 @@
             {{ if .Values.currentUserIsOwner }}
             <a class="delete-product" hx-delete="/marketplace/product/{{ .Values.id }}/delete" hx-swap="outerHTML"
                hx-target=".delete-product">
-                <button type="button">Delete product</button>
+                <button type="button">Удалить товар</button>
             </a>
             {{ end }}
             <!--Начало блока с модальным окном-->
             {{ if .Values.currentUserIsNotOwner }}
-            <button type="button" id="create-order-btn">Order product</button>
+            <button type="button" id="create-order-btn">Заказать товар</button>
             {{ end }}
             <div class="modal" id="order-form">
                 <div class="modal__box">
@@ -141,7 +141,7 @@
     <a class="marketplace-button" href="/marketplace/orders/"
        style="text-decoration: none; color: black;">
         <div>
-            <h3>Мои заказы</h3>
+            <h3>Мои покупки</h3>
         </div>
     </a>
     <a class="marketplace-button" href="/marketplace/sales/"

@@ -1,0 +1,67 @@
+version: "3.9"
+services:
+  postgres:
+    container_name: postgres_container
+    image: postgres:14.8-alpine3.18
+    environment:
+      POSTGRES_DB: "maindb"
+      POSTGRES_USER: "admin"
+      POSTGRES_PASSWORD: "nasud2198vsd2dv"
+      PGDATA: "/var/lib/postgresql/data/pgdata"
+    volumes:
+      - ../2. Init Database:/docker-entrypoint-initdb.d
+      - habrdb-data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin -d maindb"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 4G
+    networks:
+      - postgres
+
+  pgadmin:
+    container_name: pgadmin_container
+    image: dpage/pgadmin4:7.2
+    links:
+      - postgres:postgres
+    environment:
+      PGADMIN_DEFAULT_EMAIL: "plem56rus@mail.ru"
+      PGADMIN_DEFAULT_PASSWORD: "nasud2198vsd2dv"
+      PGADMIN_CONFIG_SERVER_MODE: "False"
+    volumes:
+      - pgadmin-data:/var/lib/pgadmin
+    ports:
+      - "5050:80"
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 1G
+    networks:
+      - postgres
+  redis:
+    image: 'redis'
+    ports:
+      - '6379:6379'
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 2G
+volumes:
+  habrdb-data:
+  pgadmin-data:
+
+networks:
+  postgres:
+    driver: bridge

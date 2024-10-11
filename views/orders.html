@@ -16,7 +16,7 @@
             });
         })
     </script>
-    <title>Main page</title>
+    <title>Покупки</title>
 </head>
 <body>
 <div class="main-container">
@@ -82,10 +82,10 @@
         <p><b>Id: {{ .Id }}</b> &emsp; <b>Никнейм продавца:</b> {{ .SellerUsername }} &emsp;</p>
         <p><b>Содержимое заказа:</b></p>
         <div class="order-products">
-            <p>&emsp;&emsp;&emsp;<b>ID:</b> {{ .ProductId }} &emsp;|&emsp; <b>Количество:</b> {{ .ProductCount }}</p>
+            <p>&emsp;&emsp;&emsp;<b>ID:</b> {{ .ProductId }} {{ if .BuyerUsername }} &emsp;|&emsp; <b>Название товара:</b> {{ .BuyerUsername }} {{ end }} &emsp;|&emsp; <b>Количество:</b> {{ .ProductCount }}</p>
         </div>
         <p><b>Адрес заказа</b>: {{ .OrderAddress }} </p>
         <p><b>Комментарий к заказу</b>: {{ .OrderComment }}</p>
-        <p><b>Текущий статус заказа</b>: {{ .OrderStatus }}</p>
+        <p><b>Текущий статус заказа</b>: {{ if eq .OrderStatus "ACTIVE" }}Оформлен{{ else if eq .OrderStatus "IN_PROGRESS"}}В обработке{{ else }}Завершен{{ end }}</p>
     </div>
 {{ end }}

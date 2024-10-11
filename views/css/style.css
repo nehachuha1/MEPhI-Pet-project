@@ -232,7 +232,7 @@ div.item-page-footer-interaction {
 
 div.orders-list {
     width: auto;
-    height: 65vh;
+    height: 70vh;
     min-width: 100%;
     overflow-y: auto !important;
     overflow-x: hidden !important;
@@ -245,6 +245,13 @@ div.orders-list {
 }
 
 .order > p {
+    font-size: 18px;
+}
+
+.sale {
+    border: 1px solid green;
+}
+.sale > p {
     font-size: 18px;
 }
 

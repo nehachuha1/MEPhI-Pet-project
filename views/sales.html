@@ -16,7 +16,7 @@
             });
         })
     </script>
-    <title>Main page</title>
+    <title>Заказы</title>
 </head>
 <body>
 <div class="main-container">
@@ -65,4 +65,36 @@
 {{ end }}
 
 {{ block "sales" . }}
+    <h1>Текущие продажи</h1>
+    {{ if .Values.empty }}
+        <h2>У вас нет заказов!</h2>
+    {{ else }}
+    <div class="orders-list">
+        {{ range .Orders }}
+            {{ template "sale" . }}
+        {{ end }}
+    </div>
+    {{ end }}
+{{ end }}
+
+{{ block "sale" . }}
+<div class=sale id="sale-{{ .Id }}">
+    <p><b>Id: {{ .Id }}</b> &emsp; <b>Никнейм покупателя:</b> {{ .BuyerUsername}} &emsp;</p>
+    <p><b>Содержимое заказа:</b></p>
+    <div class="order-products">
+        <p>&emsp;&emsp;&emsp;<b>ID:</b> {{ .ProductId }} {{ if .BuyerUsername }} &emsp;|&emsp; <b>Название товара:</b> {{ .SellerUsername }} {{ end }} &emsp;|&emsp; <b>Количество:</b> {{ .ProductCount }}</p>
+    </div>
+    <p><b>Адрес заказа:</b> {{ .OrderAddress }} </p>
+    <p><b>Комментарий к заказу</b>: {{ .OrderComment }}</p>
+    <p><b>Текущий статус заказа</b>: {{ if eq .OrderStatus "ACTIVE" }}Оформлен{{ else if eq .OrderStatus "IN_PROGRESS"}}В обработке{{ else }}Завершен{{ end }}</p>
+    {{ if eq .OrderStatus "ACTIVE" }}
+        <a class="order-interaction" hx-post="/marketplace/sales/order/{{ .Id }}/accept" hx-swap="outerHTML">
+            <button type="button">Принять заказ</button>
+        </a>
+    {{ else if eq .OrderStatus "IN_PROGRESS" }}
+        <a class="order-interaction" hx-post="/marketplace/sales/order/{{ .Id }}/complete" hx-swap="outerHTML">
+            <button type="button">Завершить заказ</button>
+        </a>
+    {{ end }}
+</div>
 {{ end }}

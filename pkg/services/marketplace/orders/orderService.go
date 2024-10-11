@@ -143,7 +143,7 @@ func (ors *OrderService) AcceptOrder(ctx context.Context, orderID *OrderID) (*Re
 }
 
 func (ors *OrderService) CompleteOrder(ctx context.Context, orderID *OrderID) (*Response, error) {
-	resp, err := ors.Database.AcceptOrder(&config.OrderID{Id: orderID.Id})
+	resp, err := ors.Database.CompleteOrder(&config.OrderID{Id: orderID.Id})
 	if err != nil {
 		return &Response{Code: 500, Message: "CompleteOrder service error"}, err
 	}

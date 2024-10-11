@@ -48,7 +48,7 @@ func main() {
 		fmt.Println(err)
 	}
 	defer func() {
-		err := zapLogger.Sync()
+		err = zapLogger.Sync()
 		if err != nil {
 			fmt.Println(err)
 		}

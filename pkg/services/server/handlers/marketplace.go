@@ -203,12 +203,51 @@ func (mh *MarketplaceHandler) GetOrders(c echo.Context) error {
 		formData.Errors["error"] = err.Error()
 		return c.Render(422, "orders-view", formData)
 	}
+
 	if len(allOrders.GetOrders()) == 0 {
 		formData.Values["empty"] = "empty"
 	} else {
-		formData.Orders = allOrders.GetOrders()
+		ordersToReturn := allOrders.GetOrders()
+		for i, v := range ordersToReturn {
+			productName, err := mh.MarketPlaceManager.GetProduct(context.Background(), &product.ProductID{ProductID: strconv.Itoa(int(v.ProductId))})
+			if err != nil {
+				continue
+			}
+			ordersToReturn[i].BuyerUsername = productName.Name
+		}
+		formData.Orders = ordersToReturn
 	}
 	return c.Render(http.StatusOK, "orders-view", formData)
+}
+
+func (mh *MarketplaceHandler) GetSales(c echo.Context) error {
+	formData := NewFormData()
+	currentSession, err := session.SessionFromContext(c)
+	if err != nil {
+		formData.Errors["error"] = err.Error()
+		return c.Render(422, "orders-view", formData)
+	}
+	formData.Values["username"] = currentSession.Username
+	allSales, err := mh.OrdersManager.GetSellerOrders(context.Background(), &orders.Seller{SellerUsername: currentSession.Username})
+	if err != nil {
+		formData.Values["error"] = err.Error()
+		mh.Logger.Infof("GetSeller orders handler err - %v\n", err.Error())
+		return c.Render(422, "sales-view", formData)
+	}
+	if len(allSales.GetOrders()) == 0 {
+		formData.Values["empty"] = "empty"
+	} else {
+		ordersToReturn := allSales.GetOrders()
+		for i, v := range ordersToReturn {
+			productName, err := mh.MarketPlaceManager.GetProduct(context.Background(), &product.ProductID{ProductID: strconv.Itoa(int(v.ProductId))})
+			if err != nil {
+				continue
+			}
+			ordersToReturn[i].SellerUsername = productName.Name
+		}
+		formData.Orders = ordersToReturn
+	}
+	return c.Render(http.StatusOK, "sales-view", formData)
 }
 
 func (mh *MarketplaceHandler) ProceedOrder(c echo.Context) error {
@@ -284,4 +323,58 @@ func (mh *MarketplaceHandler) ProceedOrder(c echo.Context) error {
 		return c.Render(422, "marketplace-item-page", formData)
 	}
 	return c.Redirect(http.StatusSeeOther, "/marketplace/orders/")
+}
+
+func (mh *MarketplaceHandler) AcceptOrder(c echo.Context) error {
+	formData := NewFormData()
+	currentSession, err := session.SessionFromContext(c)
+	if err != nil {
+		formData.Errors["error"] = err.Error()
+		return c.Render(422, "sales-view", formData)
+	}
+	formData.Values["username"] = currentSession.Username
+	currentOrderID, _ := strconv.ParseInt(c.Param("id"), 10, 64)
+	currentOrder, err := mh.OrdersManager.GetOrder(context.Background(), &orders.OrderID{Id: currentOrderID})
+	if err != nil {
+		formData.Errors["error"] = err.Error()
+		return c.Render(422, "sales-view", formData)
+	}
+	if currentOrder.SellerUsername != currentSession.Username {
+		formData.Errors["error"] = "You are not the seller of this order\n"
+		return c.Render(422, "sales-view", formData)
+	}
+
+	_, err = mh.OrdersManager.AcceptOrder(context.Background(), &orders.OrderID{Id: currentOrderID})
+	if err != nil {
+		formData.Errors["error"] = err.Error()
+		return c.Render(500, "sales-view", formData)
+	}
+	return c.Render(http.StatusOK, "sale", formData)
+}
+
+func (mh *MarketplaceHandler) CompleteOrder(c echo.Context) error {
+	formData := NewFormData()
+	currentSession, err := session.SessionFromContext(c)
+	if err != nil {
+		formData.Errors["error"] = err.Error()
+		return c.Render(422, "sales-view", formData)
+	}
+	formData.Values["username"] = currentSession.Username
+	currentOrderID, _ := strconv.ParseInt(c.Param("id"), 10, 64)
+	currentOrder, err := mh.OrdersManager.GetOrder(context.Background(), &orders.OrderID{Id: currentOrderID})
+	if err != nil {
+		formData.Errors["error"] = err.Error()
+		return c.Render(422, "sales-view", formData)
+	}
+	if currentOrder.SellerUsername != currentSession.Username {
+		formData.Errors["error"] = "You are not the seller of this order\n"
+		return c.Render(422, "sales-view", formData)
+	}
+
+	_, err = mh.OrdersManager.CompleteOrder(context.Background(), &orders.OrderID{Id: currentOrderID})
+	if err != nil {
+		formData.Errors["error"] = err.Error()
+		return c.Render(500, "sales-view", formData)
+	}
+	return c.Render(http.StatusOK, "sale", formData)
 }
